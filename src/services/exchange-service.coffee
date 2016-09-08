@@ -30,9 +30,15 @@ class Exchange
         return callback null, new ExchangeStream {@connectionOptions, request}
 
   whoami: (callback) =>
-    @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response) =>
+    @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response, extra) =>
       return callback error if error?
+      return callback @_errorWithCode(401, 'Unauthorized') if extra.statusCode == 401
       @_parseUserSettingsResponse response, callback
+
+  _errorWithCode: (code, message) =>
+    error = new Error message
+    error.code = code
+    return error
 
   _getSubscriptionId: ({distinguisedFolderId}, callback) =>
     @authenticatedRequest.doEws body: getSubscriptionRequest({distinguisedFolderId}), (error, response) =>

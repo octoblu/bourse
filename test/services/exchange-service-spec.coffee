@@ -23,26 +23,53 @@ describe 'Exchange', ->
     @server.destroy done
 
   describe 'whoami', ->
-    beforeEach (done) ->
-      @negotiate = @server
-        .post '/autodiscover/autodiscover.svc'
-        .set 'Authorization', NEGOTIATE
-        .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+    describe 'when the credentials are valid', ->
+      beforeEach (done) ->
+        @negotiate = @server
+          .post '/autodiscover/autodiscover.svc'
+          .set 'Authorization', NEGOTIATE
+          .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
-      @getUser = @server
-        .post '/autodiscover/autodiscover.svc'
-        .reply 200, USER_SETTINGS_RESPONSE
+        @getUser = @server
+          .post '/autodiscover/autodiscover.svc'
+          .reply 200, USER_SETTINGS_RESPONSE
 
-      @sut.whoami (error, @user) => done error
+        @sut.whoami (error, @user) => done error
 
-    it 'should make a negotiate request to the exchange server', ->
-      expect(@negotiate.isDone).to.be.true
+      it 'should make a negotiate request to the exchange server', ->
+        expect(@negotiate.isDone).to.be.true
 
-    it 'should make a get user request to the exchange server', ->
-      expect(@getUser.isDone).to.be.true
+      it 'should make a get user request to the exchange server', ->
+        expect(@getUser.isDone).to.be.true
 
-    it 'should yield a user', ->
-      expect(@user).to.deep.equal {
-        name: 'Foo Hampton'
-        id:   'ada48c41-66c9-407b-bf2a-a7880e611435'
-      }
+      it 'should yield a user', ->
+        expect(@user).to.deep.equal {
+          name: 'Foo Hampton'
+          id:   'ada48c41-66c9-407b-bf2a-a7880e611435'
+        }
+
+    describe 'when the credentials are invalid', ->
+      beforeEach (done) ->
+        @negotiate = @server
+          .post '/autodiscover/autodiscover.svc'
+          .set 'Authorization', NEGOTIATE
+          .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+        @getUser = @server
+          .post '/autodiscover/autodiscover.svc'
+          .reply 401
+
+        @sut.whoami (@error, @user) => done()
+
+      it 'should make a negotiate request to the exchange server', ->
+        expect(@negotiate.isDone).to.be.true
+
+      it 'should make a get user request to the exchange server', ->
+        expect(@getUser.isDone).to.be.true
+
+      it 'should yield no use', ->
+        expect(@user).not.to.exist
+
+      it 'should yield an error with code 401', ->
+        expect(@error).to.exist
+        expect(@error.code).to.equal 401
