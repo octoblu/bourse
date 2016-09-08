@@ -1,11 +1,12 @@
 _ = require 'lodash'
 
 AuthenticatedRequest = require './authenticated-request'
-ExchangeStream = require '../streams/exchange-stream'
+ExchangeStream       = require '../streams/exchange-stream'
 
 getStreamingEventsRequest = require '../templates/getStreamingEventsRequest'
 getSubscriptionRequest    = require '../templates/getSubscriptionRequest'
 getUserSettingsRequest    = require '../templates/getUserSettingsRequest'
+createItemRequest         = require '../templates/createItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
 
@@ -20,6 +21,11 @@ class Exchange
 
     @connectionOptions = {protocol, hostname, port, @username, @password}
     @authenticatedRequest = new AuthenticatedRequest @connectionOptions
+
+  createItem: (options, callback) =>
+    @authenticatedRequest.doEws body: createItemRequest(options), (error, request) =>
+      return callback error if error?
+      return callback null, request
 
   getStreamingEvents: ({distinguisedFolderId}, callback) =>
     @_getSubscriptionId {distinguisedFolderId}, (error, subscriptionId) =>
