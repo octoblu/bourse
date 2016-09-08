@@ -1,0 +1,23 @@
+{
+  "name": "bourse",
+  "version": "1.0.0",
+  "description": "Node wrapper for the Exchange API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/octoblu/bourse.git"
+  },
+  "keywords": [
+    "bourse",
+    "exchange"
+  ],
+  "author": "Octoblu, Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/octoblu/bourse/issues"
+  },
+  "homepage": "https://github.com/octoblu/bourse#readme"
+}
