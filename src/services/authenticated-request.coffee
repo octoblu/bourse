@@ -8,7 +8,7 @@ EWS_PATH = '/EWS/Exchange.asmx'
 AUTODISCOVER_PATH = '/autodiscover/autodiscover.svc'
 
 class AuthenticatedRequest
-  constructor: ({@protocol, @hostname, @port, @username, @password}) ->
+  constructor: ({@protocol, @hostname, @port, @username, @password, @authHostname}) ->
     throw new Error 'Missing required parameter: hostname' unless @hostname?
     throw new Error 'Missing required parameter: username' unless @username?
     throw new Error 'Missing required parameter: password' unless @password?
@@ -40,7 +40,8 @@ class AuthenticatedRequest
 
   _getRequest: ({pathname}, callback) =>
     urlStr = url.format {@protocol, @hostname, @port, pathname}
-    hostname = _.last _.split(@username, '@')
+    hostname = @authHostname
+    hostname ?= _.last _.split(@username, '@')
     options = {
       url: urlStr
       forever: true
