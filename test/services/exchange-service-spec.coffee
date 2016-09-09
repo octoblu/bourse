@@ -26,6 +26,58 @@ describe 'Exchange', ->
       {port} = @server.address()
       @sut = new Exchange protocol: 'http', hostname: "localhost", port: port, username: 'foo@biz.biz', password: 'bar'
 
+    describe 'authenticate', ->
+      describe 'when the credentials are valid', ->
+        beforeEach (done) ->
+          @server
+            .post '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @server
+            .post '/EWS/Exchange.asmx'
+            .reply 200
+
+          @sut.authenticate (error, @authenticated) => done error
+
+        it 'should yield true', ->
+          expect(@authenticated).to.be.true
+
+      describe 'when the credentials are invalid', ->
+        beforeEach (done) ->
+          @server
+            .post '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @server
+            .post '/EWS/Exchange.asmx'
+            .reply 401
+
+          @sut.authenticate (error, @authenticated) => done error
+
+        it 'should yield false', ->
+          expect(@authenticated).to.be.false
+
+      describe 'when there is a server error', ->
+        beforeEach (done) ->
+          @server
+            .post '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @server
+            .post '/EWS/Exchange.asmx'
+            .reply 500
+
+          @sut.authenticate (@error, @authenticated) => done()
+
+        it 'should yield an error', ->
+          expect(@error).to.exist
+
+        it 'should yield no authenticated', ->
+          expect(@authenticated).not.to.exist
+
     describe 'whoami', ->
       describe 'when the credentials are valid', ->
         beforeEach (done) ->

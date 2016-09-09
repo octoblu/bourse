@@ -3,6 +3,7 @@ _ = require 'lodash'
 AuthenticatedRequest = require './authenticated-request'
 ExchangeStream       = require '../streams/exchange-stream'
 
+getInboxRequest           = require '../templates/getInboxRequest'
 getStreamingEventsRequest = require '../templates/getStreamingEventsRequest'
 getSubscriptionRequest    = require '../templates/getSubscriptionRequest'
 getUserSettingsRequest    = require '../templates/getUserSettingsRequest'
@@ -21,6 +22,14 @@ class Exchange
 
     @connectionOptions = {protocol, hostname, port, @username, @password, authHostname}
     @authenticatedRequest = new AuthenticatedRequest @connectionOptions
+
+  authenticate: (callback) =>
+    @authenticatedRequest.doEws body: getInboxRequest(), (error, request, extra) =>
+      return callback error if error?
+      {statusCode} = extra
+      return callback @_errorWithCode(statusCode, "5xx Error received: #{statusCode}") if statusCode >= 500
+
+      callback null, (statusCode == 200), {statusCode}
 
   createItem: (options, callback) =>
     @authenticatedRequest.doEws body: createItemRequest(options), (error, request) =>
