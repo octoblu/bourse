@@ -22,6 +22,23 @@ module.exports = _.template """
           <t:Start><%= itemStart %></t:Start>
           <t:End><%= itemEnd %></t:End>
           <t:Location><%= itemLocation %></t:Location>
+          <t:RequiredAttendees>
+            <t:Attendee>
+              <t:Mailbox>
+                <t:EmailAddress>someemail@blah.com</t:EmailAddress>
+              </t:Mailbox>
+            </t:Attendee>
+            <t:Attendee>
+              <t:Mailbox>
+                <t:EmailAddress>anotheremail@blah.com</t:EmailAddress>
+              </t:Mailbox>
+            </t:Attendee>
+            <t:Attendee>
+              <t:Mailbox>
+                <t:EmailAddress>whoisthis@blah.com</t:EmailAddress>
+              </t:Mailbox>
+            </t:Attendee>
+          </t:RequiredAttendees>
         </t:CalendarItem>
       </m:Items>
     </m:CreateItem>
