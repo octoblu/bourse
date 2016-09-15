@@ -25,7 +25,7 @@ class Exchange
     @connectionOptions = {protocol, hostname, port, @username, @password}
     @authenticatedRequest = new AuthenticatedRequest @connectionOptions
 
-  createItem: (options, callback) =>
+  createCalendarItem: (options, callback) =>
     console.log('create item options', options)
     @authenticatedRequest.doEws body: createItemRequest(options), (error, request) =>
       return callback error if error?
@@ -36,6 +36,14 @@ class Exchange
       return callback error if error?
       return callback null, request
 
+  getStreamingEvents: ({distinguisedFolderId}, callback) =>
+    @_getSubscriptionId {distinguisedFolderId}, (error, subscriptionId) =>
+      return callback error if error?
+
+      @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
+        return callback error if error?
+        return callback null, new ExchangeStream {@connectionOptions, request}
+
   getStreamingEventsRequest: ({subscriptionId}, callback) =>
     @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
         return callback error if error?
@@ -45,14 +53,6 @@ class Exchange
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({ username }), (error, response) =>
       return callback error if error?
       @_parseUserSettingsResponse response, callback
-
-  getStreamingEvents: ({distinguisedFolderId}, callback) =>
-    @_getSubscriptionId {distinguisedFolderId}, (error, subscriptionId) =>
-      return callback error if error?
-
-      @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
-        return callback error if error?
-        return callback null, new ExchangeStream {@connectionOptions, request}
 
   whoami: (callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response, extra) =>
@@ -83,15 +83,6 @@ class Exchange
     requiredAttendees = _.get meetingRequest, 'RequiredAttendees.Attendee'
     _.map requiredAttendees, @_parseAttendee
 
-  _parseUserSettingsResponse: (response, callback) =>
-    UserResponse = _.get response, 'Envelope.Body.GetUserSettingsResponseMessage.Response.UserResponses.UserResponse'
-    UserSettings = _.get UserResponse, 'UserSettings.UserSetting'
-
-    name = _.get _.find(UserSettings, Name: 'UserDisplayName'), 'Value'
-    id   = _.get _.find(UserSettings, Name: 'UserDeploymentId'), 'Value'
-
-    return callback null, { name, id }
-
   _parseItemResponse: (response) =>
     console.log 'parseItemsRes', response
     items = _.get response, MEETING_RESPONSE_PATH
@@ -112,5 +103,14 @@ class Exchange
         email: _.get meetingRequest, 'ReceivedBy.Mailbox.EmailAddress'
       attendees: @_parseAttendees(meetingRequest)
     }
+
+  _parseUserSettingsResponse: (response, callback) =>
+    UserResponse = _.get response, 'Envelope.Body.GetUserSettingsResponseMessage.Response.UserResponses.UserResponse'
+    UserSettings = _.get UserResponse, 'UserSettings.UserSetting'
+
+    name = _.get _.find(UserSettings, Name: 'UserDisplayName'), 'Value'
+    id   = _.get _.find(UserSettings, Name: 'UserDeploymentId'), 'Value'
+
+    return callback null, { name, id }
 
 module.exports = Exchange

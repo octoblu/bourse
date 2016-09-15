@@ -12,10 +12,10 @@ module.exports = _.template """
     <soap:Body>
       <m:GetFolder>
         <m:FolderShape>
-          <t:BaseShape><%= distinguisedFolderId %></t:BaseShape>
+          <t:BaseShape>IdOnly</t:BaseShape>
         </m:FolderShape>
         <m:FolderIds>
-          <t:DistinguishedFolderId Id="calendar" />
+          <t:DistinguishedFolderId Id=<%= distinguisedFolderId %> />
         </m:FolderIds>
       </m:GetFolder>
     </soap:Body>
