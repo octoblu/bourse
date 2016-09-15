@@ -10,6 +10,7 @@ getUserSettingsRequest    = require '../templates/getUserSettingsRequest'
 createItemRequest         = require '../templates/createItemRequest'
 getIdAndKey               = require '../templates/getIdAndKey'
 getItems                  = require '../templates/getItems'
+deleteCalendarItemRequest = require '../templates/deleteCalendarItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
 MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
@@ -27,8 +28,12 @@ class Exchange
     @authenticatedRequest = new AuthenticatedRequest @connectionOptions
 
   createCalendarItem: (options, callback) =>
-    console.log('create item options', options)
     @authenticatedRequest.doEws body: createItemRequest(options), (error, request) =>
+      return callback error if error?
+      return callback null, request
+
+  deleteCalendarItem: ({Id, changeKey, cancelReason}, callback) =>
+    @authenticatedRequest.doEws body: deleteCalendarItemRequest({Id, changeKey, cancelReason}), (error, request) =>
       return callback error if error?
       return callback null, request
 
