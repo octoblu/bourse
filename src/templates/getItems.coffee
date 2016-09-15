@@ -14,7 +14,7 @@ module.exports = _.template """
       <m:ItemShape>
         <t:BaseShape>AllProperties</t:BaseShape>
       </m:ItemShape>
-      <m:CalendarView MaxEntriesReturned="5" StartDate="2016-09-10T00:00:00Z" EndDate="2016-09-16T00:00:00Z" />
+      <m:CalendarView MaxEntriesReturned="<%= maxEntries %>" StartDate="<%= startDate %>" EndDate="<%= endDate %>" />
       <m:ParentFolderIds>
         <t:FolderId Id="<%= Id %>" ChangeKey="<%= changeKey %>" />
       </m:ParentFolderIds>

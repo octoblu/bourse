@@ -37,8 +37,8 @@ class Exchange
       return callback error if error?
       return callback null, request
 
-  getItems: (Id, changeKey, callback) =>
-    @authenticatedRequest.doEws body: getItems({ Id, changeKey }), (error, request) =>
+  getItems: (Id, changeKey, maxEntries, startDate, endDate, callback) =>
+    @authenticatedRequest.doEws body: getItems({ Id, changeKey, maxEntries, startDate, endDate }), (error, request) =>
       return callback error if error?
       return callback null, request
 
