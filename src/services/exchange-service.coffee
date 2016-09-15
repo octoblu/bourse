@@ -8,7 +8,8 @@ getStreamingEventsRequest = require '../templates/getStreamingEventsRequest'
 getSubscriptionRequest    = require '../templates/getSubscriptionRequest'
 getUserSettingsRequest    = require '../templates/getUserSettingsRequest'
 createItemRequest         = require '../templates/createItemRequest'
-getCalendarRequest        = require '../templates/getCalendarRequest'
+getIdAndKey               = require '../templates/getIdAndKey'
+getItems                  = require '../templates/getItems'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
 MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
@@ -31,8 +32,13 @@ class Exchange
       return callback error if error?
       return callback null, request
 
-  getCalendar: ({distinguisedFolderId}, callback) =>
-    @authenticatedRequest.getOpenEwsRequest body: getCalendarRequest({ distinguisedFolderId }), (error, request) =>
+  getIDandKey: ({distinguisedFolderId}, callback) =>
+    @authenticatedRequest.doEws body: getIdAndKey({ distinguisedFolderId }), (error, request) =>
+      return callback error if error?
+      return callback null, request
+
+  getItems: (Id, changeKey, callback) =>
+    @authenticatedRequest.doEws body: getItems({ Id, changeKey }), (error, request) =>
       return callback error if error?
       return callback null, request
 
