@@ -67,6 +67,9 @@ describe 'ExchangeStream', ->
         recipient:
           name: 'Conf. Octoblu (Tempe)'
           email: 'octobluconf@citrix.com'
+        organizer:
+          name: "Roy Zandewager"
+          email: "Roy.Zandewager@citrix.com"
         attendees: [{
           name: "Roy Zandewager"
           email: "Roy.Zandewager@citrix.com"
@@ -102,6 +105,9 @@ describe 'ExchangeStream', ->
           name: 'Conf. Octoblu (Tempe)'
           email: 'octobluconf@citrix.com'
         accepted: true
+        organizer:
+          name: "Roy Zandewager"
+          email: "Roy.Zandewager@citrix.com"
         attendees: [{
           name: "Roy Zandewager"
           email: "Roy.Zandewager@citrix.com"

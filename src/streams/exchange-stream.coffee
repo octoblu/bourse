@@ -134,6 +134,9 @@ class ExchangeStream extends stream.Readable
       recipient:
         name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
         email: _.get meetingRequest, 'ReceivedBy.Mailbox.EmailAddress'
+      organizer:
+        name: _.get meetingRequest, 'Organizer.Mailbox.Name'
+        email: _.get meetingRequest, 'Organizer.Mailbox.EmailAddress'
       attendees: @_parseAttendees(meetingRequest)
     }
 
