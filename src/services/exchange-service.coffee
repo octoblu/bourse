@@ -1,4 +1,5 @@
-_ = require 'lodash'
+_      = require 'lodash'
+moment = require 'moment'
 
 AuthenticatedRequest = require './authenticated-request'
 ExchangeStream       = require '../streams/exchange-stream'
@@ -8,8 +9,13 @@ getStreamingEventsRequest = require '../templates/getStreamingEventsRequest'
 getSubscriptionRequest    = require '../templates/getSubscriptionRequest'
 getUserSettingsRequest    = require '../templates/getUserSettingsRequest'
 createItemRequest         = require '../templates/createItemRequest'
+getIdAndKey               = require '../templates/getIdAndKey'
+getItems                  = require '../templates/getItems'
+deleteCalendarItemRequest = require '../templates/deleteCalendarItemRequest'
+updateCalendarItemRequest = require '../templates/updateCalendarItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
+MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
 
 class Exchange
   constructor: ({protocol, hostname, port, @username, @password, authHostname}) ->
@@ -36,6 +42,21 @@ class Exchange
       return callback error if error?
       return callback null, request
 
+  deleteCalendarItem: ({Id, changeKey, cancelReason}, callback) =>
+    @authenticatedRequest.doEws body: deleteCalendarItemRequest({Id, changeKey, cancelReason}), (error, request) =>
+      return callback error if error?
+      return callback null, request
+
+  getIDandKey: ({distinguisedFolderId}, callback) =>
+    @authenticatedRequest.doEws body: getIdAndKey({ distinguisedFolderId }), (error, request) =>
+      return callback error if error?
+      return callback null, request
+
+  getItems: (Id, changeKey, maxEntries, startDate, endDate, callback) =>
+    @authenticatedRequest.doEws body: getItems({ Id, changeKey, maxEntries, startDate, endDate }), (error, request) =>
+      return callback error if error?
+      return callback null, request
+
   getStreamingEvents: ({distinguisedFolderId}, callback) =>
     @_getSubscriptionId {distinguisedFolderId}, (error, subscriptionId) =>
       return callback error if error?
@@ -43,6 +64,21 @@ class Exchange
       @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
         return callback error if error?
         return callback null, new ExchangeStream {@connectionOptions, request}
+
+  getStreamingEventsRequest: ({subscriptionId}, callback) =>
+    @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
+        return callback error if error?
+        return callback null, request
+
+  getUserSettingsRequest: ({username}, callback) =>
+    @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({ username }), (error, response) =>
+      return callback error if error?
+      @_parseUserSettingsResponse response, callback
+
+  updateCalendarItem: (options, callback) =>
+    @authenticatedRequest.doEws body: updateCalendarItemRequest(options), (error, request) =>
+      return callback error if error?
+      return callback null, request
 
   whoami: (callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response, extra) =>
@@ -59,6 +95,38 @@ class Exchange
     @authenticatedRequest.doEws body: getSubscriptionRequest({distinguisedFolderId}), (error, response) =>
       return callback error if error
       return callback null, _.get(response, SUBSCRIPTION_ID_PATH)
+
+  _normalizeDatetime: (datetime) =>
+    moment(datetime).utc().format()
+
+  _parseAttendee: (requiredAttendee) =>
+    {
+      name: _.get requiredAttendee, 'Mailbox.Name'
+      email: _.get requiredAttendee, 'Mailbox.EmailAddress'
+    }
+
+  _parseAttendees: (meetingRequest) =>
+    requiredAttendees = _.get meetingRequest, 'RequiredAttendees.Attendee'
+    _.map requiredAttendees, @_parseAttendee
+
+  _parseItemResponse: (response) =>
+    items = _.get response, MEETING_RESPONSE_PATH
+    meetingRequest = _.first _.values items
+
+    return {
+      subject: _.get meetingRequest, 'Subject'
+      startTime: @_normalizeDatetime _.get(meetingRequest, 'itemStart')
+      endTime:   @_normalizeDatetime _.get(meetingRequest, 'itemEnd')
+      accepted: "Accept" == _.get(meetingRequest, 'ResponseType')
+      eventType: 'modified'
+      itemId: _.get meetingRequest, 'ItemId.$.Id'
+      location:
+        name: _.get meetingRequest, 'Location'
+      recipient:
+        name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
+        email: _.get meetingRequest, 'ReceivedBy.Mailbox.EmailAddress'
+      attendees: @_parseAttendees(meetingRequest)
+    }
 
   _parseUserSettingsResponse: (response, callback) =>
     UserResponse = _.get response, 'Envelope.Body.GetUserSettingsResponseMessage.Response.UserResponses.UserResponse'
