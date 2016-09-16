@@ -11,6 +11,7 @@ createItemRequest         = require '../templates/createItemRequest'
 getIdAndKey               = require '../templates/getIdAndKey'
 getItems                  = require '../templates/getItems'
 deleteCalendarItemRequest = require '../templates/deleteCalendarItemRequest'
+updateCalendarItemRequest = require '../templates/updateCalendarItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
 MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
@@ -64,6 +65,12 @@ class Exchange
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({ username }), (error, response) =>
       return callback error if error?
       @_parseUserSettingsResponse response, callback
+
+  updateCalendarItem: (options, callback) =>
+    console.log 'update calendar items', options
+    @authenticatedRequest.doEws body: updateCalendarItemRequest(options), (error, request) =>
+      return callback error if error?
+      return callback null, request
 
   whoami: (callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response, extra) =>
