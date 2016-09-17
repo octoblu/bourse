@@ -42,7 +42,7 @@ class Exchange
       return callback error if error?
       return callback null, request
 
-  deleteCalendarItem: ({Id, changeKey, cancelReason}, callback) =>
+  deleteItem: ({Id, changeKey, cancelReason}, callback) =>
     @authenticatedRequest.doEws body: deleteCalendarItemRequest({Id, changeKey, cancelReason}), (error, request) =>
       return callback error if error?
       return callback null, request

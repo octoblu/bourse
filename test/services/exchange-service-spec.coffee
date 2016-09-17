@@ -11,6 +11,7 @@ CHALLENGE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/challenge.b
 NEGOTIATE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate.b64'), encoding: 'utf8'
 NEGOTIATE_CUSTOM_HOSTNAME = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate-custom-hostname.b64'), encoding: 'utf8'
 USER_SETTINGS_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/userSettingsResponse.xml'), encoding: 'utf8'
+UPDATE_ITEM_CALENDAR_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/updateItemCalendarResponse.xml')
 
 
 describe 'Exchange', ->
@@ -129,6 +130,27 @@ describe 'Exchange', ->
         it 'should yield an error with code 401', ->
           expect(@error).to.exist
           expect(@error.code).to.equal 401
+
+    xdescribe 'updateCalendarItem', ->
+      describe 'when the update is successful', ->
+        beforeEach (done) ->
+          @negotiate = @server
+            .post '/autodiscover/autodiscover.svc'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @updateCalendarItem = @server
+            .post '/autodiscover/autodiscover.svc'
+            .reply 200, UPDATE_ITEM_CALENDAR_RESPONSE
+
+          @sut.updateCalendarItem options, (error, @item) => done error
+
+        it 'should make a negotiate request to the exchange server', ->
+          expect(@negotiate.isDone).to.be.true
+
+        it 'should make an update calendar request to the exchange server', ->
+          expect(@updateCalendarItem.isDone).to.be.true
+        
 
   describe 'when the authHostname is given', ->
     beforeEach ->
