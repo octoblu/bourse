@@ -3,6 +3,7 @@ _ = require 'lodash'
 request = require 'request'
 url = require 'url'
 xml2js = require 'xml2js'
+debug = require('debug')('bourse:authenticated-request')
 
 EWS_PATH = '/EWS/Exchange.asmx'
 AUTODISCOVER_PATH = '/autodiscover/autodiscover.svc'
@@ -23,6 +24,7 @@ class AuthenticatedRequest
       request.post {body}, (error, response) =>
         return callback error if error?
 
+        debug 'response', response.body
         @_xml2js response.body, (error, obj) =>
           return callback error if error?
           return callback null, obj, {statusCode: response.statusCode}

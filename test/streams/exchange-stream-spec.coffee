@@ -77,6 +77,8 @@ describe 'ExchangeStream', ->
           name: "Aaron Heretic"
           email: "Aaron.Heretic@citrix.com"
         }]
+        urls:
+          'meet.citrix.com': [{url: 'https://meet.citrix.com/roy.vandewater/OYKTG6CI'}]
       }
 
   describe 'when the request emits another calendar event', ->
@@ -115,6 +117,8 @@ describe 'ExchangeStream', ->
           name: "Aaron Heretic"
           email: "Aaron.Heretic@citrix.com"
         }]
+        urls:
+          'meet.citrix.com': [{url: 'https://meet.citrix.com/roy.vandewater/OYKTG6CI'}]
       }
 
   describe 'when the request emits a deleted item event', ->
@@ -152,7 +156,6 @@ describe 'ExchangeStream', ->
 
     it 'should close the stream', ->
       # Getting here is good enough
-
 
   describe 'when the request times out', ->
     beforeEach (done) ->

@@ -1,9 +1,11 @@
-_ = require 'lodash'
-moment = require 'moment'
-stream = require 'stream'
-xmlNodes = require 'xml-nodes'
+_          = require 'lodash'
+moment     = require 'moment'
+stream     = require 'stream'
+url        = require 'url'
+urlregexp  = require 'urlregexp'
+xmlNodes   = require 'xml-nodes'
 xmlObjects = require 'xml-objects'
-xml2js = require 'xml2js'
+xml2js     = require 'xml2js'
 
 debug = require('debug')('slurry-exchange:exchange-stream')
 AuthenticatedRequest = require '../services/authenticated-request'
@@ -138,7 +140,17 @@ class ExchangeStream extends stream.Readable
         name: _.get meetingRequest, 'Organizer.Mailbox.Name'
         email: _.get meetingRequest, 'Organizer.Mailbox.EmailAddress'
       attendees: @_parseAttendees(meetingRequest)
+      urls: @_parseUrls(meetingRequest)
     }
+
+  _parseUrls: (meetingRequest) =>
+    body    = _.get meetingRequest, 'Body._', ''
+    matches = body.match urlregexp
+    urls    = _.map matches, (theUrl) => { url: theUrl }
+
+    _.groupBy urls, (theUrl) =>
+      parsed = url.parse(theUrl.url)
+      parsed.hostname
 
   _read: =>
     # @request.startRead()
