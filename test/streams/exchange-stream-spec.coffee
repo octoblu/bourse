@@ -78,7 +78,9 @@ describe 'ExchangeStream', ->
           email: "Aaron.Heretic@citrix.com"
         }]
         urls:
-          'meet.citrix.com': [{url: 'https://meet.citrix.com/roy.vandewater/OYKTG6CI'}]
+          com:
+            citrix:
+              meet: [{url: 'https://meet.citrix.com/roy.vandewater/OYKTG6CI'}]
       }
 
   describe 'when the request emits another calendar event', ->
@@ -118,7 +120,9 @@ describe 'ExchangeStream', ->
           email: "Aaron.Heretic@citrix.com"
         }]
         urls:
-          'meet.citrix.com': [{url: 'https://meet.citrix.com/roy.vandewater/OYKTG6CI'}]
+          com:
+            citrix:
+              meet: [{url: 'https://meet.citrix.com/roy.vandewater/OYKTG6CI'}]
       }
 
   describe 'when the request emits a deleted item event', ->

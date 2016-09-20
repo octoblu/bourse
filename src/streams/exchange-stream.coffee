@@ -146,13 +146,24 @@ class ExchangeStream extends stream.Readable
   _parseUrls: (meetingRequest) =>
     body    = _.get meetingRequest, 'Body._', ''
     matches = body.match urlregexp
-    urls    = _.map matches, (theUrl) => { url: theUrl }
 
-    _.groupBy urls, (theUrl) =>
-      parsed = url.parse(theUrl.url)
-      parsed.hostname
+    groupedUrls = {}
+
+    _.each matches, (match) =>
+      parsed = url.parse match
+      path = @_reverseHostname parsed.hostname
+
+      urls = _.get(groupedUrls, path, [])
+      urls.push {url: match}
+      _.set groupedUrls, path, urls
+
+    return groupedUrls
 
   _read: =>
     # @request.startRead()
+
+  _reverseHostname: (hostname) => # meet.citrix.com => com.citrix.meet
+    levels = _.reverse _.split(hostname, '.')
+    return _.join levels, '.'
 
 module.exports = ExchangeStream
