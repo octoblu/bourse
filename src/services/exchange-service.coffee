@@ -30,45 +30,46 @@ class Exchange
     @authenticatedRequest = new AuthenticatedRequest @connectionOptions
 
   authenticate: (callback) =>
-    @authenticatedRequest.doEws body: getInboxRequest(), (error, request, extra) =>
+    @authenticatedRequest.doEws body: getInboxRequest(), (error, response, extra) =>
       return callback error if error?
       {statusCode} = extra
       return callback @_errorWithCode(statusCode, "5xx Error received: #{statusCode}") if statusCode >= 500
 
       callback null, (statusCode == 200), {statusCode}
 
-  createItem: (options, callback) =>
-    @authenticatedRequest.doEws body: createItemRequest(options), (error, request) =>
+  createItem: ({ itemTimeZone, itemSendTo, itemSubject, itemBody, itemReminder, itemStart, itemEnd, itemLocation, attendee }, callback) =>
+    body = createItemRequest({ itemTimeZone, itemSendTo, itemSubject, itemBody, itemReminder, itemStart, itemEnd, itemLocation, attendee })
+    @authenticatedRequest.doEws { body }, (error, response) =>
       return callback error if error?
-      return callback null, request
+      return callback null, response
 
   deleteItem: ({Id, changeKey, cancelReason}, callback) =>
-    @authenticatedRequest.doEws body: deleteCalendarItemRequest({Id, changeKey, cancelReason}), (error, request) =>
+    @authenticatedRequest.doEws body: deleteCalendarItemRequest({Id, changeKey, cancelReason}), (error, response) =>
       return callback error if error?
-      return callback null, request
+      return callback null, response
 
   getIDandKey: ({distinguisedFolderId}, callback) =>
-    @authenticatedRequest.doEws body: getIdAndKey({ distinguisedFolderId }), (error, request) =>
+    @authenticatedRequest.doEws body: getIdAndKey({ distinguisedFolderId }), (error, response) =>
       return callback error if error?
-      return callback null, request
+      return callback null, response
 
   getItems: (Id, changeKey, maxEntries, startDate, endDate, callback) =>
-    @authenticatedRequest.doEws body: getItems({ Id, changeKey, maxEntries, startDate, endDate }), (error, request) =>
+    @authenticatedRequest.doEws body: getItems({ Id, changeKey, maxEntries, startDate, endDate }), (error, response) =>
       return callback error if error?
-      return callback null, request
+      return callback null, response
 
   getStreamingEvents: ({distinguisedFolderId}, callback) =>
     @_getSubscriptionId {distinguisedFolderId}, (error, subscriptionId) =>
       return callback error if error?
 
-      @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
+      @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, response) =>
         return callback error if error?
-        return callback null, new ExchangeStream {@connectionOptions, request}
+        return callback null, new ExchangeStream {@connectionOptions, response}
 
   getStreamingEventsRequest: ({subscriptionId}, callback) =>
-    @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
+    @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, response) =>
         return callback error if error?
-        return callback null, request
+        return callback null, response
 
   getUserSettingsRequest: ({username}, callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({ username }), (error, response) =>
@@ -76,9 +77,9 @@ class Exchange
       @_parseUserSettingsResponse response, callback
 
   updateCalendarItem: (options, callback) =>
-    @authenticatedRequest.doEws body: updateCalendarItemRequest(options), (error, request) =>
+    @authenticatedRequest.doEws body: updateCalendarItemRequest(options), (error, response) =>
       return callback error if error?
-      return callback null, request
+      return callback null, response
 
   whoami: (callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response, extra) =>
