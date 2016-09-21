@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+   <soap:Header>
+      <t:ServerVersionInfo MajorVersion="8" MinorVersion="1" MajorBuildNumber="344" MinorBuildNumber="0" Version="Exchange2010" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" />
+   </soap:Header>
+   <soap:Body>
+      <m:CreateItemResponse xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages">
+         <m:ResponseMessages>
+            <m:CreateItemResponseMessage ResponseClass="Success">
+               <m:ResponseCode>NoError</m:ResponseCode>
+               <m:Items>
+                  <t:CalendarItem>
+                    <t:ItemId Id="AnId" ChangeKey="AChangeKey" />
+                  </t:CalendarItem>
+               </m:Items>
+            </m:CreateItemResponseMessage>
+         </m:ResponseMessages>
+      </m:CreateItemResponse>
+   </soap:Body>
+</soap:Envelope>

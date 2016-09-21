@@ -1,5 +1,4 @@
-{afterEach, beforeEach, describe, it} = global
-{expect} = require 'chai'
+{afterEach, beforeEach, describe, it, contain} = global
 _ = require 'lodash'
 fs = require 'fs'
 path = require 'path'
@@ -10,6 +9,7 @@ Exchange = require '../../src/services/exchange-service'
 CHALLENGE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/challenge.b64'), encoding: 'utf8'
 NEGOTIATE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate.b64'), encoding: 'utf8'
 NEGOTIATE_CUSTOM_HOSTNAME = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate-custom-hostname.b64'), encoding: 'utf8'
+CREATE_ITEM_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/createItemResponse.xml'), encoding: 'utf8'
 USER_SETTINGS_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/userSettingsResponse.xml'), encoding: 'utf8'
 UPDATE_ITEM_CALENDAR_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/updateItemCalendarResponse.xml')
 
@@ -131,26 +131,49 @@ describe 'Exchange', ->
           expect(@error).to.exist
           expect(@error.code).to.equal 401
 
-    xdescribe 'updateCalendarItem', ->
-      describe 'when the update is successful', ->
+    describe 'createItem', ->
+      describe 'when creating an item is successful', ->
         beforeEach (done) ->
+          options =
+            itemTimeZone: 'Star Date Time'
+            itemSendTo: 'SendToWhatever'
+            itemSubject: 'Feed the Trolls'
+            itemBody: 'A great way to meet and flourish'
+            itemAttendees: ['blah@whatever.net', 'imdone@whocares.net']
+            itemReminder: '2016-09-08T23:00:00-01:00'
+            itemStart: '2016-09-09T00:29:00Z'
+            itemEnd: '2016-09-09T01:00:00Z'
+            itemLocation: 'Pokémon Go Home'
+
           @negotiate = @server
-            .post '/autodiscover/autodiscover.svc'
+            .post '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
-          @updateCalendarItem = @server
-            .post '/autodiscover/autodiscover.svc'
-            .reply 200, UPDATE_ITEM_CALENDAR_RESPONSE
+          @createItem = @server
+            .post '/EWS/Exchange.asmx'
+            .reply 201, CREATE_ITEM_RESPONSE
 
-          @sut.updateCalendarItem options, (error, @item) => done error
+          @sut.createItem options, (error, @item) => done error
 
         it 'should make a negotiate request to the exchange server', ->
           expect(@negotiate.isDone).to.be.true
 
-        it 'should make an update calendar request to the exchange server', ->
-          expect(@updateCalendarItem.isDone).to.be.true
-        
+        it 'should create a calendar item request to the exchange server', ->
+
+          expect(@item.Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage).to.containSubset {
+              "Items": {
+                  "CalendarItem": {
+                    "ItemId": {
+                      "$": {
+                        "ChangeKey": "AChangeKey"
+                        "Id": "AnId"
+                      }
+                    }
+                  }
+                }
+          }
+
 
   describe 'when the authHostname is given', ->
     beforeEach ->

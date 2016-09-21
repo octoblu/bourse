@@ -37,8 +37,8 @@ class Exchange
 
       callback null, (statusCode == 200), {statusCode}
 
-  createItem: ({ itemTimeZone, itemSendTo, itemSubject, itemBody, itemReminder, itemStart, itemEnd, itemLocation, attendee }, callback) =>
-    body = createItemRequest({ itemTimeZone, itemSendTo, itemSubject, itemBody, itemReminder, itemStart, itemEnd, itemLocation, attendee })
+  createItem: ({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees }, callback) =>
+    body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees })
     @authenticatedRequest.doEws { body }, (error, response) =>
       return callback error if error?
       return callback null, response

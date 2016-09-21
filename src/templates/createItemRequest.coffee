@@ -9,21 +9,21 @@ module.exports = _.template """
     <soap:Header>
       <t:RequestServerVersion Version="Exchange2013" />
       <t:TimeZoneContext>
-        <t:TimeZoneDefinition Id="<%= itemTimeZone %>" />
+        <t:TimeZoneDefinition Id="<%= timeZone %>" />
       </t:TimeZoneContext>
     </soap:Header>
     <soap:Body>
-      <m:CreateItem SendMeetingInvitations="<%= itemSendTo %>" >
+      <m:CreateItem SendMeetingInvitations="<%= sendTo %>" >
         <m:Items>
           <t:CalendarItem>
-            <t:Subject><%= itemSubject %></t:Subject>
-            <t:Body BodyType="HTML"><%= itemBody %></t:Body>
-            <t:ReminderDueBy><%= itemReminder %></t:ReminderDueBy>
-            <t:Start><%= itemStart %></t:Start>
-            <t:End><%= itemEnd %></t:End>
-            <t:Location><%= itemLocation %></t:Location>
+            <t:Subject><%= subject %></t:Subject>
+            <t:Body BodyType="HTML"><%= body %></t:Body>
+            <t:ReminderDueBy><%= reminder %></t:ReminderDueBy>
+            <t:Start><%= start %></t:Start>
+            <t:End><%= end %></t:End>
+            <t:Location><%= location %></t:Location>
             <t:RequiredAttendees>
-              <% _.each(itemAttendees, function(attendee) { %>
+              <% _.each(attendees, function(attendee) { %>
                 <t:Attendee>
                   <t:Mailbox>
                     <t:EmailAddress><%= attendee %></t:EmailAddress>
