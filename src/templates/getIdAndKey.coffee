@@ -15,7 +15,7 @@ module.exports = _.template """
           <t:BaseShape>IdOnly</t:BaseShape>
         </m:FolderShape>
         <m:FolderIds>
-          <t:DistinguishedFolderId Id="<%= distinguisedFolderId %>" />
+          <t:DistinguishedFolderId Id="<%= distinguishedFolderId %>" />
         </m:FolderIds>
       </m:GetFolder>
     </soap:Body>

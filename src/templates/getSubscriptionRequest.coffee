@@ -13,7 +13,7 @@ module.exports = _.template """
     <m:Subscribe>
       <m:StreamingSubscriptionRequest>
         <t:FolderIds>
-          <t:DistinguishedFolderId Id="<%= distinguisedFolderId %>" />
+          <t:DistinguishedFolderId Id="<%= distinguishedFolderId %>" />
         </t:FolderIds>
         <t:EventTypes>
           <t:EventType>NewMailEvent</t:EventType>

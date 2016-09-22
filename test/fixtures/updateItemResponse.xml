@@ -2,7 +2,7 @@
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xmlns:xsd="http://www.w3.org/2001/XMLSchema">
    <soap:Header>
-      <t:ServerVersionInfo MajorVersion="15" MinorVersion="0" MajorBuildNumber="1210" MinorBuildNumber="2" Version="V2_23" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" "xmlns:xsd": "http://www.w3.org/2001/XMLSchema", "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance" />
+      <t:ServerVersionInfo MajorVersion="15" MinorVersion="0" MajorBuildNumber="1210" MinorBuildNumber="2" Version="V2_23" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" />
    </soap:Header>
    <soap:Body>
       <m:UpdateItemResponse xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages">
@@ -11,7 +11,7 @@
                <m:ResponseCode>NoError</m:ResponseCode>
                <m:Items>
                   <t:CalendarItem>
-                     <t:ItemId Id="AnItemId=" ChangeKey="AChangeKey" />
+                     <t:ItemId Id="AnId" ChangeKey="AChangeKey" />
                   </t:CalendarItem>
                </m:Items>
                <m:ConflictResults>

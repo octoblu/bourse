@@ -11,7 +11,7 @@ NEGOTIATE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate.b
 NEGOTIATE_CUSTOM_HOSTNAME = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate-custom-hostname.b64'), encoding: 'utf8'
 CREATE_ITEM_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/createItemResponse.xml'), encoding: 'utf8'
 USER_SETTINGS_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/userSettingsResponse.xml'), encoding: 'utf8'
-UPDATE_ITEM_CALENDAR_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/updateItemCalendarResponse.xml')
+UPDATE_ITEM_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/updateItemResponse.xml')
 
 
 describe 'Exchange', ->
@@ -135,15 +135,15 @@ describe 'Exchange', ->
       describe 'when creating an item is successful', ->
         beforeEach (done) ->
           options =
-            itemTimeZone: 'Star Date Time'
-            itemSendTo: 'SendToWhatever'
-            itemSubject: 'Feed the Trolls'
-            itemBody: 'A great way to meet and flourish'
-            itemAttendees: ['blah@whatever.net', 'imdone@whocares.net']
-            itemReminder: '2016-09-08T23:00:00-01:00'
-            itemStart: '2016-09-09T00:29:00Z'
-            itemEnd: '2016-09-09T01:00:00Z'
-            itemLocation: 'Pokémon Go Home'
+            timeZone: 'Star Date Time'
+            sendTo: 'SendToWhatever'
+            subject: 'Feed the Trolls'
+            body: 'A great way to meet and flourish'
+            attendees: ['blah@whatever.net', 'imdone@whocares.net']
+            reminder: '2016-09-08T23:00:00-01:00'
+            start: '2016-09-09T00:29:00Z'
+            end: '2016-09-09T01:00:00Z'
+            location: 'Pokémon Go Home'
 
           @negotiate = @server
             .post '/EWS/Exchange.asmx'
@@ -161,18 +161,49 @@ describe 'Exchange', ->
 
         it 'should create a calendar item request to the exchange server', ->
 
-          expect(@item.Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage).to.containSubset {
-              "Items": {
-                  "CalendarItem": {
-                    "ItemId": {
-                      "$": {
-                        "ChangeKey": "AChangeKey"
-                        "Id": "AnId"
-                      }
-                    }
-                  }
-                }
-          }
+          expect(@item.Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage).to.containSubset
+            "Items":
+              "CalendarItem":
+                "ItemId":
+                  "$":
+                    "ChangeKey": "AChangeKey"
+                    "Id": "AnId"
+
+
+    describe 'updateItem', ->
+      describe 'when creating an item is successful', ->
+        beforeEach (done) ->
+          options =
+            Id: 'AnId'
+            changeKey: 'AChangeKey'
+            subject: 'Feed the Trolls'
+            attendees: ['no@sleep.net', 'til@brooklyn.net']
+            start: '2016-09-10T00:29:00Z'
+            end: '2016-09-10T01:00:00Z'
+            location: 'Mexico?'
+
+          @negotiate = @server
+            .post '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @updateItem = @server
+            .post '/EWS/Exchange.asmx'
+            .reply 201, UPDATE_ITEM_RESPONSE
+
+          @sut.updateItem options, (error, @item) => done error
+
+        it 'should make a negotiate request to the exchange server', ->
+          expect(@negotiate.isDone).to.be.true
+
+        it 'should send update an item request to the exchange server', ->
+          expect(@item.Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage).to.containSubset
+            "Items":
+              "CalendarItem":
+                "ItemId":
+                  "$":
+                    "ChangeKey": "AChangeKey"
+                    "Id": "AnId"
 
 
   describe 'when the authHostname is given', ->

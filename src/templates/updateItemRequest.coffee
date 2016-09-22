@@ -18,32 +18,32 @@ module.exports = _.template """
                      <t:SetItemField>
                         <t:FieldURI FieldURI="item:Subject" />
                         <t:CalendarItem>
-                           <t:Subject><%= itemSubject %></t:Subject>
+                           <t:Subject><%= subject %></t:Subject>
                         </t:CalendarItem>
                      </t:SetItemField>
                      <t:SetItemField>
                        <t:FieldURI FieldURI="calendar:Location" />
                        <t:CalendarItem>
-                          <t:Location><%= itemLocation %></t:Location>
+                          <t:Location><%= location %></t:Location>
                        </t:CalendarItem>
                      </t:SetItemField>
                      <t:SetItemField>
                        <t:FieldURI FieldURI="calendar:Start" />
                        <t:CalendarItem>
-                         <t:Start><%= itemStart %></t:Start>
+                         <t:Start><%= start %></t:Start>
                        </t:CalendarItem>
                      </t:SetItemField>
                      <t:SetItemField>
                        <t:FieldURI FieldURI="calendar:End" />
                        <t:CalendarItem>
-                         <t:End><%= itemEnd %></t:End>
+                         <t:End><%= end %></t:End>
                        </t:CalendarItem>
                      </t:SetItemField>
                      <t:SetItemField>
                       <t:FieldURI FieldURI="calendar:RequiredAttendees" />
                       <t:CalendarItem>
                          <t:RequiredAttendees>
-                           <% _.each(itemAttendees, function(attendee) { %>
+                           <% _.each(attendees, function(attendee) { %>
                            <t:Attendee>
                              <t:Mailbox>
                                <t:EmailAddress><%= attendee %></t:EmailAddress>

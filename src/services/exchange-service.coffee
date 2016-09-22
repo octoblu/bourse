@@ -12,7 +12,7 @@ createItemRequest         = require '../templates/createItemRequest'
 getIdAndKey               = require '../templates/getIdAndKey'
 getItems                  = require '../templates/getItems'
 deleteCalendarItemRequest = require '../templates/deleteCalendarItemRequest'
-updateCalendarItemRequest = require '../templates/updateCalendarItemRequest'
+updateItemRequest         = require '../templates/updateItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
 MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
@@ -48,8 +48,8 @@ class Exchange
       return callback error if error?
       return callback null, response
 
-  getIDandKey: ({distinguisedFolderId}, callback) =>
-    @authenticatedRequest.doEws body: getIdAndKey({ distinguisedFolderId }), (error, response) =>
+  getIDandKey: ({distinguishedFolderId}, callback) =>
+    @authenticatedRequest.doEws body: getIdAndKey({ distinguishedFolderId }), (error, response) =>
       return callback error if error?
       return callback null, response
 
@@ -58,8 +58,8 @@ class Exchange
       return callback error if error?
       return callback null, response
 
-  getStreamingEvents: ({distinguisedFolderId}, callback) =>
-    @_getSubscriptionId {distinguisedFolderId}, (error, subscriptionId) =>
+  getStreamingEvents: ({distinguishedFolderId}, callback) =>
+    @_getSubscriptionId {distinguishedFolderId}, (error, subscriptionId) =>
       return callback error if error?
 
       @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
@@ -76,8 +76,8 @@ class Exchange
       return callback error if error?
       @_parseUserSettingsResponse response, callback
 
-  updateCalendarItem: (options, callback) =>
-    @authenticatedRequest.doEws body: updateCalendarItemRequest(options), (error, response) =>
+  updateItem: (options, callback) =>
+    @authenticatedRequest.doEws body: updateItemRequest(options), (error, response) =>
       return callback error if error?
       return callback null, response
 
@@ -92,8 +92,8 @@ class Exchange
     error.code = code
     return error
 
-  _getSubscriptionId: ({distinguisedFolderId}, callback) =>
-    @authenticatedRequest.doEws body: getSubscriptionRequest({distinguisedFolderId}), (error, response) =>
+  _getSubscriptionId: ({distinguishedFolderId}, callback) =>
+    @authenticatedRequest.doEws body: getSubscriptionRequest({distinguishedFolderId}), (error, response) =>
       return callback error if error
       return callback null, _.get(response, SUBSCRIPTION_ID_PATH)
 
