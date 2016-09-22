@@ -11,7 +11,7 @@ getUserSettingsRequest    = require '../templates/getUserSettingsRequest'
 createItemRequest         = require '../templates/createItemRequest'
 getIdAndKey               = require '../templates/getIdAndKey'
 getItems                  = require '../templates/getItems'
-deleteCalendarItemRequest = require '../templates/deleteCalendarItemRequest'
+deleteItemRequest         = require '../templates/deleteItemRequest'
 updateItemRequest         = require '../templates/updateItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
@@ -44,7 +44,7 @@ class Exchange
       return callback null, response
 
   deleteItem: ({Id, changeKey, cancelReason}, callback) =>
-    @authenticatedRequest.doEws body: deleteCalendarItemRequest({Id, changeKey, cancelReason}), (error, response) =>
+    @authenticatedRequest.doEws body: deleteItemRequest({Id, changeKey, cancelReason}), (error, response) =>
       return callback error if error?
       return callback null, response
 
