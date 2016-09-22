@@ -23,6 +23,8 @@ class ExchangeStream extends stream.Readable
   constructor: ({connectionOptions, @request, timeout}) ->
     super objectMode: true
 
+    throw new Error 'missing required parameter: request' unless @request
+
     timeout ?= 60 * 1000
 
     {protocol, hostname, port, username, password} = connectionOptions

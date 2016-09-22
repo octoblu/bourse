@@ -62,9 +62,9 @@ class Exchange
     @_getSubscriptionId {distinguisedFolderId}, (error, subscriptionId) =>
       return callback error if error?
 
-      @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, response) =>
+      @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
         return callback error if error?
-        return callback null, new ExchangeStream {@connectionOptions, response}
+        return callback null, new ExchangeStream {@connectionOptions, request}
 
   getStreamingEventsRequest: ({subscriptionId}, callback) =>
     @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, response) =>
