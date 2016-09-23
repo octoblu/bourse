@@ -80,7 +80,8 @@ class Exchange
   updateItem: (options, callback) =>
     @authenticatedRequest.doEws body: updateItemRequest(options), (error, response) =>
       return callback error if error?
-      return callback null, response
+      return callback @_parseUpdateItemErrorResponse response if @_isUpdateItemError response
+      return callback null, @_parseUpdateItemResponse response
 
   whoami: (callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response, extra) =>
@@ -100,6 +101,10 @@ class Exchange
 
   _isCreateItemError: (response) =>
     responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    return 'Error' == _.get responseMessage, '$.ResponseClass'
+
+  _isUpdateItemError: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'
     return 'Error' == _.get responseMessage, '$.ResponseClass'
 
   _normalizeDatetime: (datetime) =>
@@ -125,6 +130,22 @@ class Exchange
 
   _parseCreateItemResponse: (response) =>
     ResponseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    Item = _.get ResponseMessage, 'Items.CalendarItem'
+    {
+      itemId:    _.get Item, 'ItemId.$.Id'
+      changeKey: _.get Item, 'ItemId.$.ChangeKey'
+    }
+
+  _parseUpdateItemErrorResponse: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'
+    message = _.get responseMessage, 'MessageText'
+
+    error = new Error "Unprocessable Entity: #{message}"
+    error.code = 422
+    return error
+
+  _parseUpdateItemResponse: (response) =>
+    ResponseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'
     Item = _.get ResponseMessage, 'Items.CalendarItem'
     {
       itemId:    _.get Item, 'ItemId.$.Id'

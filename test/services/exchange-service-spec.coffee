@@ -16,6 +16,9 @@ CREATE_ITEM_ERROR_RESPONSE = fs.readFileSync(path.join(__dirname, '../fixtures/c
 )
 USER_SETTINGS_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/userSettingsResponse.xml'), encoding : 'utf8'
 UPDATE_ITEM_RESPONSE   = fs.readFileSync path.join(__dirname, '../fixtures/updateItemResponse.xml')
+UPDATE_ITEM_ERROR_RESPONSE = fs.readFileSync(path.join(__dirname, '../fixtures/updateItemErrorResponse.xml'),
+  encoding: 'utf8'
+)
 
 NEGOTIATE_CUSTOM_HOSTNAME = _.trim(
   fs.readFileSync path.join(__dirname, '../fixtures/negotiate-custom-hostname.b64'), encoding: 'utf8'
@@ -227,22 +230,47 @@ describe 'Exchange', ->
 
           @updateItem = @server
             .post '/EWS/Exchange.asmx'
-            .reply 201, UPDATE_ITEM_RESPONSE
+            .reply 200, UPDATE_ITEM_RESPONSE
 
-          @sut.updateItem options, (error, @item) => done error
+          @sut.updateItem options, (error, @response) => done error
 
         it 'should make a negotiate request to the exchange server', ->
           expect(@negotiate.isDone).to.be.true
 
-        it 'should send update an item request to the exchange server', ->
-          expect(@item.Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage).to.containSubset
-            "Items":
-              "CalendarItem":
-                "ItemId":
-                  "$":
-                    "ChangeKey": "AChangeKey"
-                    "Id": "AnId"
+        it 'should return a calendar event', ->
+          expect(@response).to.deep.equal
+            itemId: 'AnId'
+            changeKey: 'AChangeKey'
 
+      describe 'when creating an item fails', ->
+        beforeEach (done) ->
+          options =
+            Id: 'AnId'
+            changeKey: 'wrong-wrong'
+            subject: 'Feed the Trolls'
+            attendees: ['no@sleep.net', 'til@brooklyn.net']
+            start: '2016-09-10T00:29:00Z'
+            end: '2016-09-10T01:00:00Z'
+            location: 'Mexico?'
+
+          @negotiate = @server
+            .post '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @updateItem = @server
+            .post '/EWS/Exchange.asmx'
+            .reply 200, UPDATE_ITEM_ERROR_RESPONSE
+
+          @sut.updateItem options, (@error, @item) => done()
+
+        it 'should make a negotiate request to the exchange server', ->
+          expect(@negotiate.isDone).to.be.true
+
+        it 'should return a 422 error', ->
+          expect(@error).to.exist
+          expect(@error.code).to.equal 422
+          expect(@error.message).to.equal 'Unprocessable Entity: The change key is invalid.'
 
   describe 'when the authHostname is given', ->
     beforeEach ->
