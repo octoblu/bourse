@@ -41,6 +41,7 @@ class Exchange
     body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees })
     @authenticatedRequest.doEws { body }, (error, response) =>
       return callback error if error?
+      return callback @_parseCreateItemErrorResponse response if @_isCreateItemError response
       return callback null, @_parseCreateItemResponse response
 
   deleteItem: ({Id, changeKey, cancelReason}, callback) =>
@@ -97,6 +98,10 @@ class Exchange
       return callback error if error
       return callback null, _.get(response, SUBSCRIPTION_ID_PATH)
 
+  _isCreateItemError: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    return 'Error' == _.get responseMessage, '$.ResponseClass'
+
   _normalizeDatetime: (datetime) =>
     moment(datetime).utc().format()
 
@@ -109,6 +114,14 @@ class Exchange
   _parseAttendees: (meetingRequest) =>
     requiredAttendees = _.get meetingRequest, 'RequiredAttendees.Attendee'
     _.map requiredAttendees, @_parseAttendee
+
+  _parseCreateItemErrorResponse: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    message = _.get responseMessage, 'MessageText'
+
+    error = new Error "Unprocessable Entity: #{message}"
+    error.code = 422
+    return error
 
   _parseCreateItemResponse: (response) =>
     ResponseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'

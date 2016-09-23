@@ -11,6 +11,9 @@ Exchange = require '../../src/services/exchange-service'
 CHALLENGE              = _.trim fs.readFileSync path.join(__dirname, '../fixtures/challenge.b64'), encoding     : 'utf8'
 NEGOTIATE              = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate.b64'), encoding     : 'utf8'
 CREATE_ITEM_RESPONSE   = fs.readFileSync path.join(__dirname, '../fixtures/createItemResponse.xml'), encoding   : 'utf8'
+CREATE_ITEM_ERROR_RESPONSE = fs.readFileSync(path.join(__dirname, '../fixtures/createItemErrorResponse.xml'),
+  encoding: 'utf8'
+)
 USER_SETTINGS_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/userSettingsResponse.xml'), encoding : 'utf8'
 UPDATE_ITEM_RESPONSE   = fs.readFileSync path.join(__dirname, '../fixtures/updateItemResponse.xml')
 
@@ -168,10 +171,42 @@ describe 'Exchange', ->
         it 'should make a negotiate request to the exchange server', ->
           expect(@negotiate.isDone).to.be.true
 
-        it 'should create a calendar item request to the exchange server', ->
+        it 'should return a calendar event', ->
           expect(@response).to.deep.equal
             itemId: 'AnId'
             changeKey: 'AChangeKey'
+
+      describe 'when creating an item returns an error', ->
+        beforeEach (done) ->
+          options =
+            timeZone: 'Star Date Time'
+            sendTo: 'SendToWhatever'
+            subject: 'Feed the Trolls'
+            body: 'A great way to meet and flourish'
+            attendees: ['blah@whatever.net', 'imdone@whocares.net']
+            reminder: '2016-09-08T23:00:00-01:00'
+            start: '2016-09-09T00:29:00Z'
+            end: '1999-09-09T01:00:00Z'
+            location: 'Pokémon Go Home'
+
+          @negotiate = @server
+            .post '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @createItem = @server
+            .post '/EWS/Exchange.asmx'
+            .reply 200, CREATE_ITEM_ERROR_RESPONSE
+
+          @sut.createItem options, (@error, @response) => done()
+
+        it 'should make a negotiate request to the exchange server', ->
+          expect(@negotiate.isDone).to.be.true
+
+        it 'should return a 422 error', ->
+          expect(@error).to.exist
+          expect(@error.code).to.equal 422
+          expect(@error.message).to.equal 'Unprocessable Entity: EndDate is earlier than StartDate'
 
     describe 'updateItem', ->
       describe 'when creating an item is successful', ->
