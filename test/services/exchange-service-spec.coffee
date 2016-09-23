@@ -1,4 +1,6 @@
-{afterEach, beforeEach, describe, it, contain} = global
+{afterEach, beforeEach, describe, it} = global
+{expect} = require 'chai'
+
 _ = require 'lodash'
 fs = require 'fs'
 path = require 'path'
@@ -6,13 +8,15 @@ shmock = require 'shmock'
 enableDestroy = require 'server-destroy'
 
 Exchange = require '../../src/services/exchange-service'
-CHALLENGE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/challenge.b64'), encoding: 'utf8'
-NEGOTIATE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate.b64'), encoding: 'utf8'
-NEGOTIATE_CUSTOM_HOSTNAME = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate-custom-hostname.b64'), encoding: 'utf8'
-CREATE_ITEM_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/createItemResponse.xml'), encoding: 'utf8'
-USER_SETTINGS_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/userSettingsResponse.xml'), encoding: 'utf8'
-UPDATE_ITEM_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/updateItemResponse.xml')
+CHALLENGE              = _.trim fs.readFileSync path.join(__dirname, '../fixtures/challenge.b64'), encoding     : 'utf8'
+NEGOTIATE              = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate.b64'), encoding     : 'utf8'
+CREATE_ITEM_RESPONSE   = fs.readFileSync path.join(__dirname, '../fixtures/createItemResponse.xml'), encoding   : 'utf8'
+USER_SETTINGS_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/userSettingsResponse.xml'), encoding : 'utf8'
+UPDATE_ITEM_RESPONSE   = fs.readFileSync path.join(__dirname, '../fixtures/updateItemResponse.xml')
 
+NEGOTIATE_CUSTOM_HOSTNAME = _.trim(
+  fs.readFileSync path.join(__dirname, '../fixtures/negotiate-custom-hostname.b64'), encoding: 'utf8'
+)
 
 describe 'Exchange', ->
   beforeEach ->
@@ -25,7 +29,12 @@ describe 'Exchange', ->
   describe 'when the authHostname is inferred', ->
     beforeEach ->
       {port} = @server.address()
-      @sut = new Exchange protocol: 'http', hostname: "localhost", port: port, username: 'foo@biz.biz', password: 'bar'
+      @sut = new Exchange
+        protocol: 'http'
+        hostname: "localhost"
+        port: port
+        username: 'foo@biz.biz'
+        password: 'bar'
 
     describe 'authenticate', ->
       describe 'when the credentials are valid', ->
@@ -154,21 +163,15 @@ describe 'Exchange', ->
             .post '/EWS/Exchange.asmx'
             .reply 201, CREATE_ITEM_RESPONSE
 
-          @sut.createItem options, (error, @item) => done error
+          @sut.createItem options, (error, @response) => done error
 
         it 'should make a negotiate request to the exchange server', ->
           expect(@negotiate.isDone).to.be.true
 
         it 'should create a calendar item request to the exchange server', ->
-
-          expect(@item.Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage).to.containSubset
-            "Items":
-              "CalendarItem":
-                "ItemId":
-                  "$":
-                    "ChangeKey": "AChangeKey"
-                    "Id": "AnId"
-
+          expect(@response).to.deep.equal
+            itemId: 'AnId'
+            changeKey: 'AChangeKey'
 
     describe 'updateItem', ->
       describe 'when creating an item is successful', ->

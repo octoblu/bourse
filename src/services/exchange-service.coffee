@@ -15,7 +15,7 @@ deleteItemRequest         = require '../templates/deleteItemRequest'
 updateItemRequest         = require '../templates/updateItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
-MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
+# MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
 
 class Exchange
   constructor: ({protocol, hostname, port, @username, @password, authHostname}) ->
@@ -41,7 +41,7 @@ class Exchange
     body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees })
     @authenticatedRequest.doEws { body }, (error, response) =>
       return callback error if error?
-      return callback null, response
+      return callback null, @_parseCreateItemResponse response
 
   deleteItem: ({Id, changeKey, cancelReason}, callback) =>
     @authenticatedRequest.doEws body: deleteItemRequest({Id, changeKey, cancelReason}), (error, response) =>
@@ -68,8 +68,8 @@ class Exchange
 
   getStreamingEventsRequest: ({subscriptionId}, callback) =>
     @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, response) =>
-        return callback error if error?
-        return callback null, response
+      return callback error if error?
+      return callback null, response
 
   getUserSettingsRequest: ({username}, callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({ username }), (error, response) =>
@@ -110,23 +110,12 @@ class Exchange
     requiredAttendees = _.get meetingRequest, 'RequiredAttendees.Attendee'
     _.map requiredAttendees, @_parseAttendee
 
-  _parseItemResponse: (response) =>
-    items = _.get response, MEETING_RESPONSE_PATH
-    meetingRequest = _.first _.values items
-
-    return {
-      subject: _.get meetingRequest, 'Subject'
-      startTime: @_normalizeDatetime _.get(meetingRequest, 'itemStart')
-      endTime:   @_normalizeDatetime _.get(meetingRequest, 'itemEnd')
-      accepted: "Accept" == _.get(meetingRequest, 'ResponseType')
-      eventType: 'modified'
-      itemId: _.get meetingRequest, 'ItemId.$.Id'
-      location:
-        name: _.get meetingRequest, 'Location'
-      recipient:
-        name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
-        email: _.get meetingRequest, 'ReceivedBy.Mailbox.EmailAddress'
-      attendees: @_parseAttendees(meetingRequest)
+  _parseCreateItemResponse: (response) =>
+    ResponseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    Item = _.get ResponseMessage, 'Items.CalendarItem'
+    {
+      itemId:    _.get Item, 'ItemId.$.Id'
+      changeKey: _.get Item, 'ItemId.$.ChangeKey'
     }
 
   _parseUserSettingsResponse: (response, callback) =>
