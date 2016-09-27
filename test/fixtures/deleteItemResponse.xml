@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo
+      MajorVersion="15"
+      MinorVersion="0"
+      MajorBuildNumber="1210"
+      MinorBuildNumber="2"
+      Version="V2_23"
+      xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types"
+      xmlns="http://schemas.microsoft.com/exchange/services/2006/types"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:CreateItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:CreateItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:Items>
+            <t:CalendarItem>
+              <t:ItemId Id="deleteItemId" ChangeKey="deleteItemChangeKeyNew"/>
+            </t:CalendarItem>
+            <t:MeetingCancellation>
+              <t:ItemId Id="cancellationItemId" ChangeKey="cancellationItemChangeKey"/>
+            </t:MeetingCancellation>
+          </m:Items>
+        </m:CreateItemResponseMessage>
+      </m:ResponseMessages>
+    </m:CreateItemResponse>
+  </s:Body>
+</s:Envelope>

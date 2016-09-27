@@ -47,7 +47,7 @@ class Exchange
   deleteItem: ({Id, changeKey, cancelReason}, callback) =>
     @authenticatedRequest.doEws body: deleteItemRequest({Id, changeKey, cancelReason}), (error, response) =>
       return callback error if error?
-      return callback null, response
+      return callback null, @_parseDeleteItemResponse response
 
   getIDandKey: ({distinguishedFolderId}, callback) =>
     @authenticatedRequest.doEws body: getIdAndKey({ distinguishedFolderId }), (error, response) =>
@@ -129,6 +129,14 @@ class Exchange
     return error
 
   _parseCreateItemResponse: (response) =>
+    ResponseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    Item = _.get ResponseMessage, 'Items.CalendarItem'
+    {
+      itemId:    _.get Item, 'ItemId.$.Id'
+      changeKey: _.get Item, 'ItemId.$.ChangeKey'
+    }
+
+  _parseDeleteItemResponse: (response) =>
     ResponseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
     Item = _.get ResponseMessage, 'Items.CalendarItem'
     {
