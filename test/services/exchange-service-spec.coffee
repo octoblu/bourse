@@ -17,7 +17,7 @@ CREATE_ITEM_RESPONSE        = slurpFile '../fixtures/createItemResponse.xml'
 CREATE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/createItemErrorResponse.xml'
 DELETE_ITEM_RESPONSE        = slurpFile '../fixtures/deleteItemResponse.xml'
 DELETE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/deleteItemErrorResponse.xml'
-GET_CALENDAR_RANGE_RESPONSE = slurpFile '../fixtures/getCalendarItemsInRangeResponse.xml'
+GET_CALENDAR_RANGE_ERROR_RESPONSE = slurpFile '../fixtures/getCalendarItemsInRangeErrorResponse.xml'
 USER_SETTINGS_RESPONSE      = slurpFile '../fixtures/userSettingsResponse.xml'
 UPDATE_ITEM_RESPONSE        = slurpFile '../fixtures/updateItemResponse.xml'
 UPDATE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/updateItemErrorResponse.xml'
@@ -93,8 +93,8 @@ describe 'Exchange', ->
         it 'should yield no authenticated', ->
           expect(@authenticated).not.to.exist
 
-    xdescribe '->getCalendarItemsInRange', ->
-      describe 'when everything is cool', ->
+    describe '->getCalendarItemsInRange', ->
+      describe 'when everything is not cool', ->
         beforeEach (done) ->
           @negotiate = @server
             .post '/EWS/Exchange.asmx'
@@ -103,11 +103,11 @@ describe 'Exchange', ->
 
           @getCalendarItemsInRange = @server
             .post '/EWS/Exchange.asmx'
-            .reply 200, GET_CALENDAR_RANGE_RESPONSE
+            .reply 200, GET_CALENDAR_RANGE_ERROR_RESPONSE
 
-          start = '2016-09-28'
-          end   = '2016-12-31'
-          @sut.getCalendarItemsInRange {start, end}, (error, @items) => done error
+          start = '2016-12-28'
+          end   = '1999-12-31'
+          @sut.getCalendarItemsInRange {start, end}, (@error) => done()
 
         it 'should make a negotiate request to the exchange server', ->
           expect(@negotiate.isDone).to.be.true
@@ -115,11 +115,10 @@ describe 'Exchange', ->
         it 'should make a get user request to the exchange server', ->
           expect(@getCalendarItemsInRange.isDone).to.be.true
 
-        it 'should yield items', ->
-          expect(@items).to.deep.equal [{
-            name: 'Foo Hampton'
-            id:   'ada48c41-66c9-407b-bf2a-a7880e611435'
-          }]
+        it 'should yield an error', ->
+          expect(@error).to.exist
+          expect(@error.code).to.deep.equal 422, @error.message
+          expect(@error.message).to.deep.equal 'EndDate is earlier than StartDate'
 
 
     describe 'whoami', ->

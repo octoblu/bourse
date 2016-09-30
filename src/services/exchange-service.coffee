@@ -61,6 +61,7 @@ class Exchange
     body = getCalendarItemsInRangeRequest({ start, end })
     @authenticatedRequest.doEws { body }, (error, response) =>
       return callback error if error?
+      return callback @_parseCalendarItemsInRangeErrorResponse response if @_isCalendarItemsInRangeError response
       itemIds = @_parseCalendarItemsInRangeResponse response
       async.mapSeries itemIds, @getItemByItemId, callback
 
@@ -127,6 +128,12 @@ class Exchange
       return callback error if error
       return callback null, _.get(response, SUBSCRIPTION_ID_PATH)
 
+  _isCalendarItemsInRangeError: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages.FindItemResponseMessage'
+    responseClass   = _.get responseMessage, '$.ResponseClass'
+
+    return responseClass == 'Error'
+
   _isCreateItemError: (response) =>
     responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
     return 'Error' == _.get responseMessage, '$.ResponseClass'
@@ -175,6 +182,12 @@ class Exchange
       itemId:    _.get Item, 'ItemId.$.Id'
       changeKey: _.get Item, 'ItemId.$.ChangeKey'
     }
+
+  _parseCalendarItemsInRangeErrorResponse: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages.FindItemResponseMessage'
+    error = new Error _.get(responseMessage, 'MessageText')
+    error.code = 422
+    return error
 
   _parseCalendarItemsInRangeResponse: (response) =>
     responseMessages = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages'

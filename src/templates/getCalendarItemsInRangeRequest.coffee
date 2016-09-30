@@ -17,7 +17,7 @@ module.exports = _.template """
             <t:FieldURI FieldURI="item:Subject" />
           </t:AdditionalProperties>
         </m:ItemShape>
-        <m:CalendarView MaxEntriesReturned="5" StartDate="<%= start.format() %>" EndDate="<%= end.format() %>" />
+        <m:CalendarView MaxEntriesReturned="100" StartDate="<%= start.format() %>" EndDate="<%= end.format() %>" />
         <m:ParentFolderIds>
           <t:DistinguishedFolderId Id="calendar" />
         </m:ParentFolderIds>
