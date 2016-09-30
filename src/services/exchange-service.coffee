@@ -4,14 +4,15 @@ moment = require 'moment'
 AuthenticatedRequest = require './authenticated-request'
 ExchangeStream       = require '../streams/exchange-stream'
 
+createItemRequest         = require '../templates/createItemRequest'
+deleteItemRequest         = require '../templates/deleteItemRequest'
+getIdAndKey               = require '../templates/getIdAndKey'
 getInboxRequest           = require '../templates/getInboxRequest'
+getItemRequest            = require '../templates/getItemRequest'
+getItems                  = require '../templates/getItems'
 getStreamingEventsRequest = require '../templates/getStreamingEventsRequest'
 getSubscriptionRequest    = require '../templates/getSubscriptionRequest'
 getUserSettingsRequest    = require '../templates/getUserSettingsRequest'
-createItemRequest         = require '../templates/createItemRequest'
-getIdAndKey               = require '../templates/getIdAndKey'
-getItems                  = require '../templates/getItems'
-deleteItemRequest         = require '../templates/deleteItemRequest'
 updateItemRequest         = require '../templates/updateItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
@@ -51,6 +52,11 @@ class Exchange
 
   getIDandKey: ({distinguishedFolderId}, callback) =>
     @authenticatedRequest.doEws body: getIdAndKey({ distinguishedFolderId }), (error, response) =>
+      return callback error if error?
+      return callback null, response
+
+  getItemByItemId: (itemId, callback) =>
+    @authenticatedRequest.doEws body: getItemRequest({ itemId}), (error, response) =>
       return callback error if error?
       return callback null, response
 
