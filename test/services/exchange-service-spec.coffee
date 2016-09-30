@@ -8,27 +8,20 @@ shmock = require 'shmock'
 enableDestroy = require 'server-destroy'
 
 Exchange = require '../../src/services/exchange-service'
-CHALLENGE              = _.trim fs.readFileSync path.join(__dirname, '../fixtures/challenge.b64'), encoding     : 'utf8'
-NEGOTIATE              = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate.b64'), encoding     : 'utf8'
-CREATE_ITEM_RESPONSE   = fs.readFileSync path.join(__dirname, '../fixtures/createItemResponse.xml'), encoding   : 'utf8'
-CREATE_ITEM_ERROR_RESPONSE = fs.readFileSync(path.join(__dirname, '../fixtures/createItemErrorResponse.xml'),
-  encoding: 'utf8'
-)
 
-DELETE_ITEM_RESPONSE   = fs.readFileSync path.join(__dirname, '../fixtures/deleteItemResponse.xml'), encoding   : 'utf8'
-DELETE_ITEM_ERROR_RESPONSE = fs.readFileSync(path.join(__dirname, '../fixtures/deleteItemErrorResponse.xml'),
-  encoding: 'utf8'
-)
+slurpFile = (filename) => _.trim fs.readFileSync path.join(__dirname, filename), encoding: 'utf8'
 
-USER_SETTINGS_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/userSettingsResponse.xml'), encoding : 'utf8'
-UPDATE_ITEM_RESPONSE   = fs.readFileSync path.join(__dirname, '../fixtures/updateItemResponse.xml')
-UPDATE_ITEM_ERROR_RESPONSE = fs.readFileSync(path.join(__dirname, '../fixtures/updateItemErrorResponse.xml'),
-  encoding: 'utf8'
-)
-
-NEGOTIATE_CUSTOM_HOSTNAME = _.trim(
-  fs.readFileSync path.join(__dirname, '../fixtures/negotiate-custom-hostname.b64'), encoding: 'utf8'
-)
+CHALLENGE                   = slurpFile '../fixtures/challenge.b64'
+NEGOTIATE                   = slurpFile '../fixtures/negotiate.b64'
+CREATE_ITEM_RESPONSE        = slurpFile '../fixtures/createItemResponse.xml'
+CREATE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/createItemErrorResponse.xml'
+DELETE_ITEM_RESPONSE        = slurpFile '../fixtures/deleteItemResponse.xml'
+DELETE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/deleteItemErrorResponse.xml'
+GET_CALENDAR_RANGE_RESPONSE = slurpFile '../fixtures/getCalendarItemsInRangeResponse.xml'
+USER_SETTINGS_RESPONSE      = slurpFile '../fixtures/userSettingsResponse.xml'
+UPDATE_ITEM_RESPONSE        = slurpFile '../fixtures/updateItemResponse.xml'
+UPDATE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/updateItemErrorResponse.xml'
+NEGOTIATE_CUSTOM_HOSTNAME   = slurpFile '../fixtures/negotiate-custom-hostname.b64'
 
 describe 'Exchange', ->
   beforeEach ->
@@ -99,6 +92,35 @@ describe 'Exchange', ->
 
         it 'should yield no authenticated', ->
           expect(@authenticated).not.to.exist
+
+    xdescribe '->getCalendarItemsInRange', ->
+      describe 'when everything is cool', ->
+        beforeEach (done) ->
+          @negotiate = @server
+            .post '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @getCalendarItemsInRange = @server
+            .post '/EWS/Exchange.asmx'
+            .reply 200, GET_CALENDAR_RANGE_RESPONSE
+
+          start = '2016-09-28'
+          end   = '2016-12-31'
+          @sut.getCalendarItemsInRange {start, end}, (error, @items) => done error
+
+        it 'should make a negotiate request to the exchange server', ->
+          expect(@negotiate.isDone).to.be.true
+
+        it 'should make a get user request to the exchange server', ->
+          expect(@getCalendarItemsInRange.isDone).to.be.true
+
+        it 'should yield items', ->
+          expect(@items).to.deep.equal [{
+            name: 'Foo Hampton'
+            id:   'ada48c41-66c9-407b-bf2a-a7880e611435'
+          }]
+
 
     describe 'whoami', ->
       describe 'when the credentials are valid', ->

@@ -1,22 +1,27 @@
-_      = require 'lodash'
-moment = require 'moment'
+async     = require 'async'
+_         = require 'lodash'
+moment    = require 'moment'
+url       = require 'url'
+urlregexp = require 'urlregexp'
+
+debug = require('debug')('bourse:exchange-service')
 
 AuthenticatedRequest = require './authenticated-request'
 ExchangeStream       = require '../streams/exchange-stream'
 
-createItemRequest         = require '../templates/createItemRequest'
-deleteItemRequest         = require '../templates/deleteItemRequest'
-getIdAndKey               = require '../templates/getIdAndKey'
-getInboxRequest           = require '../templates/getInboxRequest'
-getItemRequest            = require '../templates/getItemRequest'
-getItems                  = require '../templates/getItems'
-getStreamingEventsRequest = require '../templates/getStreamingEventsRequest'
-getSubscriptionRequest    = require '../templates/getSubscriptionRequest'
-getUserSettingsRequest    = require '../templates/getUserSettingsRequest'
-updateItemRequest         = require '../templates/updateItemRequest'
+createItemRequest              = require '../templates/createItemRequest'
+deleteItemRequest              = require '../templates/deleteItemRequest'
+getCalendarItemsInRangeRequest = require '../templates/getCalendarItemsInRangeRequest'
+getIdAndKey                    = require '../templates/getIdAndKey'
+getInboxRequest                = require '../templates/getInboxRequest'
+getItemRequest                 = require '../templates/getItemRequest'
+getItems                       = require '../templates/getItems'
+getStreamingEventsRequest      = require '../templates/getStreamingEventsRequest'
+getSubscriptionRequest         = require '../templates/getSubscriptionRequest'
+getUserSettingsRequest         = require '../templates/getUserSettingsRequest'
+updateItemRequest              = require '../templates/updateItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
-# MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
 
 class Exchange
   constructor: ({protocol, hostname, port, @username, @password, authHostname}) ->
@@ -50,15 +55,30 @@ class Exchange
       return callback error if error?
       return callback null, @_parseDeleteItemResponse response
 
+  getCalendarItemsInRange: ({ start, end }, callback) =>
+    start = moment.utc start
+    end   = moment.utc end
+    body = getCalendarItemsInRangeRequest({ start, end })
+    @authenticatedRequest.doEws { body }, (error, response) =>
+      return callback error if error?
+      itemIds = @_parseCalendarItemsInRangeResponse response
+      async.mapSeries itemIds, @getItemByItemId, callback
+
   getIDandKey: ({distinguishedFolderId}, callback) =>
     @authenticatedRequest.doEws body: getIdAndKey({ distinguishedFolderId }), (error, response) =>
       return callback error if error?
       return callback null, response
 
-  getItemByItemId: (itemId, callback) =>
-    @authenticatedRequest.doEws body: getItemRequest({ itemId}), (error, response) =>
+  getItem: ({itemId}, callback) =>
+    @authenticatedRequest.doEws body: getItemRequest({itemId}), (error, response, extra) =>
       return callback error if error?
-      return callback null, response
+      return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
+      return callback new Error('Empty Response') unless response?
+      return callback new Error('Item Not Found') if @_isItemNotFound response
+      return callback null, @_parseGetItemResponse response
+
+  getItemByItemId: (itemId, callback) =>
+    @getItem {itemId}, callback
 
   getItems: (Id, changeKey, maxEntries, startDate, endDate, callback) =>
     @authenticatedRequest.doEws body: getItems({ Id, changeKey, maxEntries, startDate, endDate }), (error, response) =>
@@ -84,6 +104,8 @@ class Exchange
       @_parseUserSettingsResponse response, callback
 
   updateItem: (options, callback) =>
+    debug 'updateItem-options', options
+    debug 'updateItem', updateItemRequest(options)
     @authenticatedRequest.doEws body: updateItemRequest(options), (error, response) =>
       return callback error if error?
       return callback @_parseUpdateItemErrorResponse response if @_isUpdateItemError response
@@ -108,6 +130,10 @@ class Exchange
   _isCreateItemError: (response) =>
     responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
     return 'Error' == _.get responseMessage, '$.ResponseClass'
+
+  _isItemNotFound: (response) =>
+    responseCode = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.ResponseCode'
+    return responseCode == 'ErrorItemNotFound'
 
   _isUpdateItemError: (response) =>
     responseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'
@@ -150,6 +176,33 @@ class Exchange
       changeKey: _.get Item, 'ItemId.$.ChangeKey'
     }
 
+  _parseCalendarItemsInRangeResponse: (response) =>
+    responseMessages = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages'
+    items = _.castArray _.get responseMessages, 'FindItemResponseMessage.RootFolder.Items.CalendarItem'
+    _.map items, (item) => _.get item, 'ItemId.$.Id'
+
+  _parseGetItemResponse: (response) =>
+    items = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
+    meetingRequest = _.first _.values items
+
+    return {
+      subject: _.get meetingRequest, 'Subject'
+      startTime: @_normalizeDatetime _.get(meetingRequest, 'StartWallClock')
+      endTime:   @_normalizeDatetime _.get(meetingRequest, 'EndWallClock')
+      accepted: "Accept" == _.get(meetingRequest, 'ResponseType')
+      eventType: 'modified'
+      itemId: _.get meetingRequest, 'ItemId.$.Id'
+      location: _.get meetingRequest, 'Location'
+      recipient:
+        name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
+        email: _.get meetingRequest, 'ReceivedBy.Mailbox.EmailAddress'
+      organizer:
+        name: _.get meetingRequest, 'Organizer.Mailbox.Name'
+        email: _.get meetingRequest, 'Organizer.Mailbox.EmailAddress'
+      attendees: @_parseAttendees(meetingRequest)
+      urls: @_parseUrls(meetingRequest)
+    }
+
   _parseUpdateItemErrorResponse: (response) =>
     responseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'
     message = _.get responseMessage, 'MessageText'
@@ -166,6 +219,22 @@ class Exchange
       changeKey: _.get Item, 'ItemId.$.ChangeKey'
     }
 
+  _parseUrls: (meetingRequest) =>
+    body    = _.get meetingRequest, 'Body._', ''
+    matches = body.match urlregexp
+
+    groupedUrls = {}
+
+    _.each matches, (match) =>
+      parsed = url.parse match
+      path = @_reverseHostname parsed.hostname
+
+      urls = _.get(groupedUrls, path, [])
+      urls.push {url: match}
+      _.set groupedUrls, path, urls
+
+    return groupedUrls
+
   _parseUserSettingsResponse: (response, callback) =>
     UserResponse = _.get response, 'Envelope.Body.GetUserSettingsResponseMessage.Response.UserResponses.UserResponse'
     UserSettings = _.get UserResponse, 'UserSettings.UserSetting'
@@ -174,5 +243,9 @@ class Exchange
     id   = _.get _.find(UserSettings, Name: 'UserDeploymentId'), 'Value'
 
     return callback null, { name, id }
+
+  _reverseHostname: (hostname) => # meet.citrix.com => com.citrix.meet
+    levels = _.reverse _.split(hostname, '.')
+    return _.join levels, '.'
 
 module.exports = Exchange

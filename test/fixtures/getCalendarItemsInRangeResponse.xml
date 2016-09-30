@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+  <s:Header>
+    <h:ServerVersionInfo MajorVersion="15" MinorVersion="0" MajorBuildNumber="1210" MinorBuildNumber="2" Version="V2_23" xmlns:h="http://schemas.microsoft.com/exchange/services/2006/types" xmlns="http://schemas.microsoft.com/exchange/services/2006/types" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+  </s:Header>
+  <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <m:FindItemResponse xmlns:m="http://schemas.microsoft.com/exchange/services/2006/messages" xmlns:t="http://schemas.microsoft.com/exchange/services/2006/types">
+      <m:ResponseMessages>
+        <m:FindItemResponseMessage ResponseClass="Success">
+          <m:ResponseCode>NoError</m:ResponseCode>
+          <m:RootFolder TotalItemsInView="13" IncludesLastItemInRange="false">
+            <t:Items>
+              <t:CalendarItem>
+                <t:ItemId Id="AAMkADYxNGJmNGNmLTIxYTctNDlkOC1hZWRmLTJjMTMzZmI5YmUxNABGAAAAAAACtVr7DjkQQ4cFx7dwBexwBwD9KrxseohjTIFhVu2R9k27AAAAAAEKAAD9KrxseohjTIFhVu2R9k27AAAS/1nWAAA=" ChangeKey="DwAAABYAAAD9KrxseohjTIFhVu2R9k27AAAS/d/e"/>
+                <t:Subject>Roy van de Water Non-recurring</t:Subject>
+                <t:Start>2016-09-28T02:00:00Z</t:Start>
+                <t:End>2016-09-28T02:30:00Z</t:End>
+              </t:CalendarItem>
+              <t:CalendarItem>
+                <t:ItemId Id="AAMkADYxNGJmNGNmLTIxYTctNDlkOC1hZWRmLTJjMTMzZmI5YmUxNABGAAAAAAACtVr7DjkQQ4cFx7dwBexwBwD9KrxseohjTIFhVu2R9k27AAAAAAEKAAD9KrxseohjTIFhVu2R9k27AAAS/1nWAAA=" ChangeKey="DwAAABYAAAD9KrxseohjTIFhVu2R9k27AAAS/eAD"/>
+                <t:Subject>Roy van de Water Recurring</t:Subject>
+                <t:Start>2016-09-28T04:00:00Z</t:Start>
+                <t:End>2016-09-28T04:30:00Z</t:End>
+              </t:CalendarItem>
+            </t:Items>
+          </m:RootFolder>
+        </m:FindItemResponseMessage>
+      </m:ResponseMessages>
+    </m:FindItemResponse>
+  </s:Body>
+</s:Envelope>

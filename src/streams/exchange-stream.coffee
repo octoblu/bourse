@@ -7,7 +7,7 @@ xmlNodes   = require 'xml-nodes'
 xmlObjects = require 'xml-objects'
 xml2js     = require 'xml2js'
 
-debug = require('debug')('slurry-exchange:exchange-stream')
+debug = require('debug')('bourse:exchange-stream')
 AuthenticatedRequest = require '../services/authenticated-request'
 getItemRequest = require '../templates/getItemRequest'
 
@@ -39,9 +39,9 @@ class ExchangeStream extends stream.Readable
     @_pushBackTimeout = _.debounce @_onTimeout, timeout
     @_pushBackTimeout()
 
-    # @request
-    #   .pipe(xmlNodes('Envelope'))
-    #   .on 'data', (data) => console.log data.toString()
+    @request
+      .pipe(xmlNodes('Envelope'))
+      .on 'data', (data) => debug data.toString()
 
   destroy: =>
     debug 'destroy'
