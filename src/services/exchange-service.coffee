@@ -253,9 +253,8 @@ class Exchange
     UserSettings = _.get UserResponse, 'UserSettings.UserSetting'
 
     name = _.get _.find(UserSettings, Name: 'UserDisplayName'), 'Value'
-    id   = _.get _.find(UserSettings, Name: 'UserDeploymentId'), 'Value'
 
-    return callback null, { name, id }
+    return callback null, { name }
 
   _reverseHostname: (hostname) => # meet.citrix.com => com.citrix.meet
     levels = _.reverse _.split(hostname, '.')

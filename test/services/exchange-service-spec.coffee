@@ -144,7 +144,6 @@ describe 'Exchange', ->
         it 'should yield a user', ->
           expect(@user).to.deep.equal {
             name: 'Foo Hampton'
-            id:   'ada48c41-66c9-407b-bf2a-a7880e611435'
           }
 
       describe 'when the credentials are invalid', ->
