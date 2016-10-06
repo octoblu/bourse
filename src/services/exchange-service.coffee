@@ -205,6 +205,7 @@ class Exchange
       accepted: "Accept" == _.get(meetingRequest, 'ResponseType')
       eventType: 'modified'
       itemId: _.get meetingRequest, 'ItemId.$.Id'
+      changeKey: _.get meetingRequest, 'ItemId.$.ChangeKey', null
       location: _.get meetingRequest, 'Location'
       recipient:
         name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
