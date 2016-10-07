@@ -22,6 +22,7 @@ class AuthenticatedRequest
     @_getRequest {pathname}, (error, request) =>
       return callback error if error?
 
+      debug 'request', body
       request.post {body}, (error, response) =>
         return callback error if error?
 
