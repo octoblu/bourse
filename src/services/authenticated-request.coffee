@@ -19,14 +19,16 @@ class AuthenticatedRequest
     @port ?= 443
 
   do: ({pathname, body}, callback) =>
+    transactionId = _.random 0, 1000
+    debugSecrets 'credentials', transactionId, JSON.stringify({@username, @password})
     @_getRequest {pathname}, (error, request) =>
       return callback error if error?
 
-      debug 'request', body
+      debug 'request', transactionId, body
       request.post {body}, (error, response) =>
         return callback error if error?
 
-        debug 'response', response.body
+        debug 'response', transactionId, response.body
         @_xml2js response.body, (error, obj) =>
           return callback error if error?
           return callback null, obj, {statusCode: response.statusCode}
@@ -58,7 +60,6 @@ class AuthenticatedRequest
       unless response.statusCode == 401
         return callback new Error("Expected status: 401, received #{response.statusCode}")
 
-      debugSecrets 'credentials', JSON.stringify({@username, @password})
       headers = {
         'Authorization': responseHeader(response, urlStr, '', @username, @password)
         'Content-Type': 'text/xml; charset=utf-8'
