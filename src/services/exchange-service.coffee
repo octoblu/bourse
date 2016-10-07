@@ -45,8 +45,9 @@ class Exchange
 
   createItem: ({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees }, callback) =>
     body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees })
-    @authenticatedRequest.doEws { body }, (error, response) =>
+    @authenticatedRequest.doEws { body }, (error, response, extra) =>
       return callback error if error?
+      return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
       return callback @_parseCreateItemErrorResponse response if @_isCreateItemError response
       return callback null, @_parseCreateItemResponse response
 
