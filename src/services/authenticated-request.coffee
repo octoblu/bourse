@@ -4,6 +4,7 @@ request = require 'request'
 url = require 'url'
 xml2js = require 'xml2js'
 debug = require('debug')('bourse:authenticated-request')
+debugSecrets = require('debug')('secret:bourse:authenticated-request')
 
 EWS_PATH = '/EWS/Exchange.asmx'
 AUTODISCOVER_PATH = '/autodiscover/autodiscover.svc'
@@ -56,6 +57,7 @@ class AuthenticatedRequest
       unless response.statusCode == 401
         return callback new Error("Expected status: 401, received #{response.statusCode}")
 
+      debugSecrets 'credentials', JSON.stringify({@username, @password})
       headers = {
         'Authorization': responseHeader(response, urlStr, '', @username, @password)
         'Content-Type': 'text/xml; charset=utf-8'
