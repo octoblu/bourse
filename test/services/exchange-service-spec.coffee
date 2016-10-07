@@ -193,7 +193,7 @@ describe 'Exchange', ->
 
           @createItem = @server
             .post '/EWS/Exchange.asmx'
-            .reply 201, CREATE_ITEM_RESPONSE
+            .reply 200, CREATE_ITEM_RESPONSE
 
           @sut.createItem options, (error, @response) => done error
 
