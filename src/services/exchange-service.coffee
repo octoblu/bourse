@@ -108,8 +108,9 @@ class Exchange
   updateItem: (options, callback) =>
     debug 'updateItem-options', options
     debug 'updateItem', updateItemRequest(options)
-    @authenticatedRequest.doEws body: updateItemRequest(options), (error, response) =>
+    @authenticatedRequest.doEws body: updateItemRequest(options), (error, response, extra) =>
       return callback error if error?
+      return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
       return callback @_parseUpdateItemErrorResponse response if @_isUpdateItemError response
       return callback null, @_parseUpdateItemResponse response
 

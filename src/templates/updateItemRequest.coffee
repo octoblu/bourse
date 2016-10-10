@@ -39,22 +39,24 @@ module.exports = _.template """
                          <t:End><%= end %></t:End>
                        </t:CalendarItem>
                      </t:SetItemField>
-                     <t:SetItemField>
-                      <t:FieldURI FieldURI="calendar:RequiredAttendees" />
-                      <t:CalendarItem>
-                         <t:RequiredAttendees>
-                           <% _.each(attendees, function(attendee) { %>
-                           <t:Attendee>
-                             <t:Mailbox>
-                               <t:EmailAddress><%= attendee %></t:EmailAddress>
-                               <t:RoutingType>SMTP</t:RoutingType>
-                               <t:MailboxType>Mailbox</t:MailboxType>
-                             </t:Mailbox>
-                           </t:Attendee>
-                           <% }) %>
-                        </t:RequiredAttendees>
-                     </t:CalendarItem>
-                  </t:SetItemField>
+                     <% if(!(_.isEmpty(attendees))){ %>
+                       <t:SetItemField>
+                        <t:FieldURI FieldURI="calendar:RequiredAttendees" />
+                        <t:CalendarItem>
+                             <t:RequiredAttendees>
+                               <% _.each(attendees, function(attendee) { %>
+                               <t:Attendee>
+                                 <t:Mailbox>
+                                   <t:EmailAddress><%= attendee %></t:EmailAddress>
+                                   <t:RoutingType>SMTP</t:RoutingType>
+                                   <t:MailboxType>Mailbox</t:MailboxType>
+                                 </t:Mailbox>
+                               </t:Attendee>
+                               <% }) %>
+                            </t:RequiredAttendees>
+                       </t:CalendarItem>
+                    </t:SetItemField>
+                  <%}%>
                </t:Updates>
             </t:ItemChange>
          </m:ItemChanges>
