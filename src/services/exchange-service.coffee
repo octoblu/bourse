@@ -65,6 +65,7 @@ class Exchange
       return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
       return callback @_parseCalendarItemsInRangeErrorResponse response if @_isCalendarItemsInRangeError response
       itemIds = @_parseCalendarItemsInRangeResponse response
+      return callback null, [], extra if _.isEmpty itemIds
       @_getItemsByItemIds itemIds, callback
 
   getIDandKey: ({distinguishedFolderId}, callback) =>
@@ -129,8 +130,10 @@ class Exchange
     return error
 
   _getItemsByItemIds: (itemIds, callback) =>
-    @authenticatedRequest.doEws body: getItemsByItemIdsRequest({itemIds}), (error, response) =>
+    @authenticatedRequest.doEws body: getItemsByItemIdsRequest({itemIds}), (error, response, extra) =>
       return callback error if error?
+      return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
+      return callback @_parseGetItemsErrorResponse response if @_isGetItemsError response
       return callback null, @_parseGetItemsResponse response
 
   _getSubscriptionId: ({distinguishedFolderId}, callback) =>
@@ -146,6 +149,10 @@ class Exchange
 
   _isCreateItemError: (response) =>
     responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    return 'Error' == _.get responseMessage, '$.ResponseClass'
+
+  _isGetItemsError: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage'
     return 'Error' == _.get responseMessage, '$.ResponseClass'
 
   _isItemNotFound: (response) =>
@@ -202,7 +209,13 @@ class Exchange
   _parseCalendarItemsInRangeResponse: (response) =>
     responseMessages = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages'
     items = _.castArray _.get responseMessages, 'FindItemResponseMessage.RootFolder.Items.CalendarItem'
-    _.map items, (item) => _.get item, 'ItemId.$.Id'
+    _.compact _.map(items, 'ItemId.$.Id')
+
+  _parseGetItemsErrorResponse: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage'
+    error = new Error _.get(responseMessage, 'MessageText')
+    error.code = 422
+    return error
 
   _parseGetItemResponse: (response) =>
     items = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
@@ -228,7 +241,8 @@ class Exchange
     }
 
   _parseGetItemsResponse: (response) =>
-    GetItemResponseMessages = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage'
+    ResponseMessages = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages'
+    GetItemResponseMessages = _.castArray _.get(ResponseMessages, 'GetItemResponseMessage')
     meetingRequests = _.map GetItemResponseMessages, 'Items.CalendarItem'
 
     return _.map meetingRequests, (meetingRequest) => {
