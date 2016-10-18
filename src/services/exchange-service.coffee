@@ -1,4 +1,3 @@
-async     = require 'async'
 _         = require 'lodash'
 moment    = require 'moment'
 url       = require 'url'
@@ -229,8 +228,8 @@ class Exchange
     }
 
   _parseGetItemsResponse: (response) =>
-    items = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
-    meetingRequests = _.values items
+    GetItemResponseMessages = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage'
+    meetingRequests = _.map GetItemResponseMessages, 'Items.CalendarItem'
 
     return _.map meetingRequests, (meetingRequest) => {
       subject: _.get meetingRequest, 'Subject'
