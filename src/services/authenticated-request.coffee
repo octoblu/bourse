@@ -26,12 +26,13 @@ class AuthenticatedRequest
 
       debug 'request', transactionId, body
       request.post {body}, (error, response) =>
-        return callback error if error?
+        extra = _.pick response, 'statusCode', 'headers'
+        return callback error, null, extra if error?
 
-        debug 'response', transactionId, response.body
+        debug 'response', transactionId, response.body, extra
         @_xml2js response.body, (error, obj) =>
-          return callback error if error?
-          return callback null, obj, {statusCode: response.statusCode}
+          return callback error, null, extra if error?
+          return callback null, obj, extra
 
   doAutodiscover: ({body}, callback) =>
     @do {body, pathname: AUTODISCOVER_PATH}, callback

@@ -15,6 +15,7 @@ getCalendarItemsInRangeRequest = require '../templates/getCalendarItemsInRangeRe
 getIdAndKey                    = require '../templates/getIdAndKey'
 getInboxRequest                = require '../templates/getInboxRequest'
 getItemRequest                 = require '../templates/getItemRequest'
+getItemsByItemIdsRequest       = require '../templates/getItemsByItemIdsRequest'
 getItems                       = require '../templates/getItems'
 getStreamingEventsRequest      = require '../templates/getStreamingEventsRequest'
 getSubscriptionRequest         = require '../templates/getSubscriptionRequest'
@@ -60,11 +61,12 @@ class Exchange
     start = moment.utc start
     end   = moment.utc end
     body = getCalendarItemsInRangeRequest({ start, end })
-    @authenticatedRequest.doEws { body }, (error, response) =>
+    @authenticatedRequest.doEws { body }, (error, response, extra) =>
       return callback error if error?
+      return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
       return callback @_parseCalendarItemsInRangeErrorResponse response if @_isCalendarItemsInRangeError response
       itemIds = @_parseCalendarItemsInRangeResponse response
-      async.mapSeries itemIds, @getItemByItemId, callback
+      @_getItemsByItemIds itemIds, callback
 
   getIDandKey: ({distinguishedFolderId}, callback) =>
     @authenticatedRequest.doEws body: getIdAndKey({ distinguishedFolderId }), (error, response) =>
@@ -117,13 +119,20 @@ class Exchange
   whoami: (callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response, extra) =>
       return callback error if error?
-      return callback @_errorWithCode(401, 'Unauthorized') if extra.statusCode == 401
-      @_parseUserSettingsResponse response, callback
+      return callback @_errorWithCode(401, 'Unauthorized'), null, extra if extra.statusCode == 401
+      @_parseUserSettingsResponse response, (error, userSettings) =>
+        return callback error, null, extra if error?
+        return callback null, userSettings, extra
 
   _errorWithCode: (code, message) =>
     error = new Error message
     error.code = code
     return error
+
+  _getItemsByItemIds: (itemIds, callback) =>
+    @authenticatedRequest.doEws body: getItemsByItemIdsRequest({itemIds}), (error, response) =>
+      return callback error if error?
+      return callback null, @_parseGetItemsResponse response
 
   _getSubscriptionId: ({distinguishedFolderId}, callback) =>
     @authenticatedRequest.doEws body: getSubscriptionRequest({distinguishedFolderId}), (error, response) =>
@@ -201,6 +210,29 @@ class Exchange
     meetingRequest = _.first _.values items
 
     return {
+      subject: _.get meetingRequest, 'Subject'
+      startTime: @_normalizeDatetime _.get(meetingRequest, 'StartWallClock')
+      endTime:   @_normalizeDatetime _.get(meetingRequest, 'EndWallClock')
+      accepted: "Accept" == _.get(meetingRequest, 'ResponseType')
+      eventType: 'modified'
+      itemId: _.get meetingRequest, 'ItemId.$.Id'
+      changeKey: _.get meetingRequest, 'ItemId.$.ChangeKey', null
+      location: _.get meetingRequest, 'Location'
+      recipient:
+        name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
+        email: _.get meetingRequest, 'ReceivedBy.Mailbox.EmailAddress'
+      organizer:
+        name: _.get meetingRequest, 'Organizer.Mailbox.Name'
+        email: _.get meetingRequest, 'Organizer.Mailbox.EmailAddress'
+      attendees: @_parseAttendees(meetingRequest)
+      urls: @_parseUrls(meetingRequest)
+    }
+
+  _parseGetItemsResponse: (response) =>
+    items = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
+    meetingRequests = _.values items
+
+    return _.map meetingRequests, (meetingRequest) => {
       subject: _.get meetingRequest, 'Subject'
       startTime: @_normalizeDatetime _.get(meetingRequest, 'StartWallClock')
       endTime:   @_normalizeDatetime _.get(meetingRequest, 'EndWallClock')

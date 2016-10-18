@@ -13,9 +13,6 @@ module.exports = _.template """
       <m:FindItem Traversal="Shallow">
         <m:ItemShape>
           <t:BaseShape>IdOnly</t:BaseShape>
-          <t:AdditionalProperties>
-            <t:FieldURI FieldURI="item:Subject" />
-          </t:AdditionalProperties>
         </m:ItemShape>
         <m:CalendarView MaxEntriesReturned="100" StartDate="<%= start.format() %>" EndDate="<%= end.format() %>" />
         <m:ParentFolderIds>
