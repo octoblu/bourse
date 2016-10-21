@@ -44,6 +44,7 @@ class Exchange
       callback null, (statusCode == 200), {statusCode}
 
   createItem: ({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties }, callback) =>
+    extendedProperties = _.mapKeys extendedProperties, (key) => _.kebabCase key
     body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties })
     @authenticatedRequest.doEws { body }, (error, response, extra) =>
       return callback error if error?
