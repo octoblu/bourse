@@ -13,6 +13,15 @@ module.exports = _.template """
       <m:GetItem>
         <m:ItemShape>
           <t:BaseShape>AllProperties</t:BaseShape>
+          <% if (!_.isEmpty(extendedProperties)) { %>
+          <t:AdditionalProperties>
+            <% _.each(extendedProperties, function(value, key) { %>
+              <t:ExtendedFieldURI DistinguishedPropertySetId="InternetHeaders"
+                                    PropertyName="X-<%= key %>"
+                                    PropertyType="String" />
+            <% }) %>
+          </t:AdditionalProperties>
+          <% } %>
         </m:ItemShape>
         <m:ItemIds>
           <% _.each(itemIds, function(itemId){ %>

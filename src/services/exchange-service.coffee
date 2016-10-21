@@ -43,8 +43,13 @@ class Exchange
 
       callback null, (statusCode == 200), {statusCode}
 
+
+  _prepareExtendedProperties: (extendedProperties) =>
+    _.mapKeys extendedProperties, (value, key) =>
+      _.kebabCase key
+
   createItem: ({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties }, callback) =>
-    extendedProperties = _.mapKeys extendedProperties, (key) => _.kebabCase key
+    extendedProperties = @_prepareExtendedProperties extendedProperties
     body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties })
     @authenticatedRequest.doEws { body }, (error, response, extra) =>
       return callback error if error?
@@ -57,7 +62,7 @@ class Exchange
       return callback error if error?
       return callback null, @_parseDeleteItemResponse response
 
-  getCalendarItemsInRange: ({ start, end }, callback) =>
+  getCalendarItemsInRange: ({ start, end, extendedProperties }, callback) =>
     start = moment.utc start
     end   = moment.utc end
     body = getCalendarItemsInRangeRequest({ start, end })
@@ -67,7 +72,7 @@ class Exchange
       return callback @_parseCalendarItemsInRangeErrorResponse response if @_isCalendarItemsInRangeError response
       itemIds = @_parseCalendarItemsInRangeResponse response
       return callback null, [], extra if _.isEmpty itemIds
-      @_getItemsByItemIds itemIds, callback
+      @_getItemsByItemIds {itemIds, extendedProperties}, callback
 
   getIDandKey: ({distinguishedFolderId}, callback) =>
     @authenticatedRequest.doEws body: getIdAndKey({ distinguishedFolderId }), (error, response) =>
@@ -130,8 +135,9 @@ class Exchange
     error.code = code
     return error
 
-  _getItemsByItemIds: (itemIds, callback) =>
-    @authenticatedRequest.doEws body: getItemsByItemIdsRequest({itemIds}), (error, response, extra) =>
+  _getItemsByItemIds: ({ itemIds, extendedProperties }, callback) =>
+    extendedProperties = @_prepareExtendedProperties extendedProperties
+    @authenticatedRequest.doEws body: getItemsByItemIdsRequest({itemIds, extendedProperties}), (error, response, extra) =>
       return callback error if error?
       return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
       return callback @_parseGetItemsErrorResponse response if @_isGetItemsError response
@@ -239,7 +245,11 @@ class Exchange
         email: _.get meetingRequest, 'Organizer.Mailbox.EmailAddress'
       attendees: @_parseAttendees(meetingRequest)
       urls: @_parseUrls(meetingRequest)
+      extendedProperties: @_parseExtendedProperties(meetingRequest)
     }
+
+  _parseExtendedProperties: (response) =>
+    return {}
 
   _parseGetItemsResponse: (response) =>
     ResponseMessages = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages'
