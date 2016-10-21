@@ -185,6 +185,8 @@ describe 'Exchange', ->
             start: '2016-09-09T00:29:00Z'
             end: '2016-09-09T01:00:00Z'
             location: 'Pokémon Go Home'
+            extendedProperties:
+              something: 'happened'
 
           @negotiate = @server
             .post '/EWS/Exchange.asmx'

@@ -33,6 +33,14 @@ module.exports = _.template """
                 </t:Attendee>
               <% }) %>
             </t:RequiredAttendees>
+            <t:ExtendedProperty>
+              <% _.each(extendedProperties, function(value, key) { %>
+                <t:ExtendedFieldURI DistinguishedPropertySetId="InternetHeaders"
+                                    PropertyName="X-<%= key %>"
+                                    PropertyType="String" />
+                <t:Value><%= value %></t:Value>
+              <% }) %>
+            </t:ExtendedProperty>
           </t:CalendarItem>
         </m:Items>
       </m:CreateItem>

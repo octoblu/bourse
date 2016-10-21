@@ -43,8 +43,8 @@ class Exchange
 
       callback null, (statusCode == 200), {statusCode}
 
-  createItem: ({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees }, callback) =>
-    body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees })
+  createItem: ({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties }, callback) =>
+    body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties })
     @authenticatedRequest.doEws { body }, (error, response, extra) =>
       return callback error if error?
       return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
