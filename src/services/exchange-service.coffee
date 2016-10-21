@@ -227,7 +227,9 @@ class Exchange
   _parseGetItemResponse: (response) =>
     items = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
     meetingRequest = _.first _.values items
+    @_parseMeetingRequest meetingRequest
 
+  _parseMeetingRequest: (meetingRequest) =>
     return {
       subject: _.get meetingRequest, 'Subject'
       startTime: @_normalizeDatetime _.get(meetingRequest, 'StartWallClock')
@@ -249,31 +251,21 @@ class Exchange
     }
 
   _parseExtendedProperties: (response) =>
-    return {}
+    extendedProperties = _.castArray _.get response, 'ExtendedProperty'
+    result = {}
+    _.each extendedProperties, (extendedFieldURI) =>
+      propertyName = _.get extendedFieldURI, 'ExtendedFieldURI.$.PropertyName'
+      name = _.camelCase propertyName?.replace /X-/, ''
+      value = _.get extendedFieldURI, 'Value'
+      result[name] = value
+    return result
 
   _parseGetItemsResponse: (response) =>
     ResponseMessages = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages'
     GetItemResponseMessages = _.castArray _.get(ResponseMessages, 'GetItemResponseMessage')
     meetingRequests = _.map GetItemResponseMessages, 'Items.CalendarItem'
 
-    return _.map meetingRequests, (meetingRequest) => {
-      subject: _.get meetingRequest, 'Subject'
-      startTime: @_normalizeDatetime _.get(meetingRequest, 'StartWallClock')
-      endTime:   @_normalizeDatetime _.get(meetingRequest, 'EndWallClock')
-      accepted: "Accept" == _.get(meetingRequest, 'ResponseType')
-      eventType: 'modified'
-      itemId: _.get meetingRequest, 'ItemId.$.Id'
-      changeKey: _.get meetingRequest, 'ItemId.$.ChangeKey', null
-      location: _.get meetingRequest, 'Location'
-      recipient:
-        name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
-        email: _.get meetingRequest, 'ReceivedBy.Mailbox.EmailAddress'
-      organizer:
-        name: _.get meetingRequest, 'Organizer.Mailbox.Name'
-        email: _.get meetingRequest, 'Organizer.Mailbox.EmailAddress'
-      attendees: @_parseAttendees(meetingRequest)
-      urls: @_parseUrls(meetingRequest)
-    }
+    _.map meetingRequests, @_parseMeetingRequest
 
   _parseUpdateItemErrorResponse: (response) =>
     responseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'

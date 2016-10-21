@@ -17,8 +17,8 @@ module.exports = _.template """
           <t:AdditionalProperties>
             <% _.each(extendedProperties, function(value, key) { %>
               <t:ExtendedFieldURI DistinguishedPropertySetId="InternetHeaders"
-                                    PropertyName="X-<%= key %>"
-                                    PropertyType="String" />
+                                  PropertyName="X-<%= key %>"
+                                  PropertyType="String" />
             <% }) %>
           </t:AdditionalProperties>
           <% } %>
