@@ -19,6 +19,16 @@ module.exports = _.template """
             <t:Subject><%= subject %></t:Subject>
             <t:Body BodyType="HTML"><%= body %></t:Body>
             <t:ReminderDueBy><%= reminder %></t:ReminderDueBy>
+            <% if (extendedProperties) { %>
+            <t:ExtendedProperty>
+              <% _.each(extendedProperties, function(value, key) { %>
+                <t:ExtendedFieldURI DistinguishedPropertySetId="InternetHeaders"
+                                    PropertyName="X-<%= key %>"
+                                    PropertyType="String" />
+                <t:Value><%= value %></t:Value>
+              <% }) %>
+            </t:ExtendedProperty>
+            <% } %>
             <t:Start><%= start %></t:Start>
             <t:End><%= end %></t:End>
             <t:Location><%= location %></t:Location>
@@ -33,14 +43,6 @@ module.exports = _.template """
                 </t:Attendee>
               <% }) %>
             </t:RequiredAttendees>
-            <t:ExtendedProperty>
-              <% _.each(extendedProperties, function(value, key) { %>
-                <t:ExtendedFieldURI DistinguishedPropertySetId="InternetHeaders"
-                                    PropertyName="X-<%= key %>"
-                                    PropertyType="String" />
-                <t:Value><%= value %></t:Value>
-              <% }) %>
-            </t:ExtendedProperty>
           </t:CalendarItem>
         </m:Items>
       </m:CreateItem>
