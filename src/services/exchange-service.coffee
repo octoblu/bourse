@@ -286,6 +286,7 @@ class Exchange
   _parseUrls: (meetingRequest) =>
     body    = _.get meetingRequest, 'Body._', ''
     matches = body.match urlregexp
+    matches = _.reject matches, (match) => _.contains match, 'span'
 
     groupedUrls = {}
 
