@@ -1,9 +1,11 @@
-_ = require 'lodash'
-{challengeHeader, responseHeader} = require 'ntlm'
-request = require 'request'
-url = require 'url'
-xml2js = require 'xml2js'
-debug = require('debug')('bourse:authenticated-request')
+_            = require 'lodash'
+{ntlm}       = require 'httpntlm'
+request      = require 'request'
+https        = require 'https'
+http         = require 'http'
+url          = require 'url'
+xml2js       = require 'xml2js'
+debug        = require('debug')('bourse:authenticated-request')
 debugSecrets = require('debug')('secret:bourse:authenticated-request')
 
 EWS_PATH = '/EWS/Exchange.asmx'
@@ -46,27 +48,43 @@ class AuthenticatedRequest
       return callback null, authenticatedRequest.post({body})
 
   _getRequest: ({pathname}, callback) =>
-    urlStr = url.format {@protocol, @hostname, @port, pathname}
-    hostname = @authHostname
-    hostname ?= _.last _.split(@username, '@')
-    options = {
+    urlStr = url.format { @protocol, @hostname, @port, pathname }
+    username = _.first _.split @username, '@'
+    ntlmOptions =
       url: urlStr
-      forever: true
-      headers:
-        'Authorization': challengeHeader('', hostname)
-    }
+      username: username
+      password: @password
+      workstation: ''
+      domain: ''
 
-    request.post options, (error, response) =>
+    if @protocol == 'https'
+      keepaliveAgent = new https.Agent({keepAlive: true});
+    else
+      keepaliveAgent = new http.Agent({keepAlive: true});
+
+    options =
+      url: urlStr
+      agent: keepaliveAgent
+      headers:
+        'Content-Type': 'text/xml; charset=utf-8'
+        'Authorization': ntlm.createType1Message(ntlmOptions)
+
+    request.get options, (error, response) =>
       return callback error if error?
       unless response.statusCode == 401
         return callback new Error("Expected status: 401, received #{response.statusCode}")
 
-      headers = {
-        'Authorization': responseHeader(response, urlStr, '', @username, @password)
-        'Content-Type': 'text/xml; charset=utf-8'
-      }
+      type2msg = ntlm.parseType2Message response.headers['www-authenticate']
+      type3msg = ntlm.createType3Message type2msg, ntlmOptions
 
-      callback null, request.defaults(_.defaults({ headers }, options))
+      options =
+        url: urlStr
+        agent: keepaliveAgent
+        headers:
+          'Authorization': type3msg
+          'Content-Type': 'text/xml; charset=utf-8'
+
+      callback null, request.defaults(options)
 
   _xml2js: (xml, callback) =>
     options = {
