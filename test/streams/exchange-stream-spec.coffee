@@ -45,7 +45,7 @@ describe 'ExchangeStream', ->
     beforeEach (done) ->
       @sut.on 'readable', _.once(done)
       @server
-        .post '/EWS/Exchange.asmx'
+        .get '/EWS/Exchange.asmx'
         .set 'Authorization', NEGOTIATE
         .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -88,7 +88,7 @@ describe 'ExchangeStream', ->
     beforeEach (done) ->
       @sut.on 'readable', _.once(done)
       @server
-        .post '/EWS/Exchange.asmx'
+        .get '/EWS/Exchange.asmx'
         .set 'Authorization', NEGOTIATE
         .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -136,7 +136,7 @@ describe 'ExchangeStream', ->
       @sut.on 'readable', done
 
       @server
-        .post '/EWS/Exchange.asmx'
+        .get '/EWS/Exchange.asmx'
         .set 'Authorization', NEGOTIATE
         .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 

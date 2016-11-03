@@ -45,7 +45,7 @@ describe 'Exchange', ->
       describe 'when the credentials are valid', ->
         beforeEach (done) ->
           @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -61,7 +61,7 @@ describe 'Exchange', ->
       describe 'when the credentials are invalid', ->
         beforeEach (done) ->
           @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -77,7 +77,7 @@ describe 'Exchange', ->
       describe 'when there is a server error', ->
         beforeEach (done) ->
           @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -97,7 +97,7 @@ describe 'Exchange', ->
       describe 'when everything is not cool', ->
         beforeEach (done) ->
           @negotiate = @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -125,7 +125,7 @@ describe 'Exchange', ->
       describe 'when the credentials are valid', ->
         beforeEach (done) ->
           @negotiate = @server
-            .post '/autodiscover/autodiscover.svc'
+            .get '/autodiscover/autodiscover.svc'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -149,7 +149,7 @@ describe 'Exchange', ->
       describe 'when the credentials are invalid', ->
         beforeEach (done) ->
           @negotiate = @server
-            .post '/autodiscover/autodiscover.svc'
+            .get '/autodiscover/autodiscover.svc'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -189,7 +189,7 @@ describe 'Exchange', ->
               something: 'happened'
 
           @negotiate = @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -221,7 +221,7 @@ describe 'Exchange', ->
             location: 'Pokémon Go Home'
 
           @negotiate = @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -247,7 +247,7 @@ describe 'Exchange', ->
             changeKey: 'deleteItemChangeKey'
 
           @negotiate = @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -275,7 +275,7 @@ describe 'Exchange', ->
             changeKey: 'malformed'
 
           @negotiate = @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -306,7 +306,7 @@ describe 'Exchange', ->
             location: 'Mexico?'
 
           @negotiate = @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -336,7 +336,7 @@ describe 'Exchange', ->
             location: 'Mexico?'
 
           @negotiate = @server
-            .post '/EWS/Exchange.asmx'
+            .get '/EWS/Exchange.asmx'
             .set 'Authorization', NEGOTIATE
             .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
@@ -368,7 +368,7 @@ describe 'Exchange', ->
     describe 'when the credentials are valid', ->
       beforeEach (done) ->
         @negotiate = @server
-          .post '/autodiscover/autodiscover.svc'
+          .get '/autodiscover/autodiscover.svc'
           .set 'Authorization', NEGOTIATE_CUSTOM_HOSTNAME
           .reply 401, '', {'WWW-Authenticate': CHALLENGE}
 
