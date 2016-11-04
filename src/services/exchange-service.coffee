@@ -119,7 +119,7 @@ class Exchange
     options.end ?= null
     options.start ?= null
     options.location ?= null
-    options.attendees ?= null
+    options.attendees ?= _.reject options.attendees, _.isEmpty
     debug 'updateItem-options', options
     debug 'updateItem', updateItemRequest(options)
     @authenticatedRequest.doEws body: updateItemRequest(options), (error, response, extra) =>
