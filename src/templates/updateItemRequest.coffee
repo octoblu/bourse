@@ -14,57 +14,39 @@ module.exports = _.template """
          <m:ItemChanges>
             <t:ItemChange>
                <t:ItemId Id="<%= itemId %>" ChangeKey="<%= changeKey %>" />
-                  <t:Updates>
-                    <% if (!_.isEmpty(subject)) { %>
-                     <t:SetItemField>
-                        <t:FieldURI FieldURI="item:Subject" />
-                        <t:CalendarItem>
-                           <t:Subject><%= subject %></t:Subject>
-                        </t:CalendarItem>
-                     </t:SetItemField>
-                     <% } %>
-                     <% if (!_.isEmpty(location)) { %>
-                     <t:SetItemField>
-                       <t:FieldURI FieldURI="calendar:Location" />
-                       <t:CalendarItem>
-                          <t:Location><%= location %></t:Location>
-                       </t:CalendarItem>
-                     </t:SetItemField>
-                     <% } %>
-                     <% if (!_.isEmpty(start)) { %>
-                     <t:SetItemField>
-                       <t:FieldURI FieldURI="calendar:Start" />
-                       <t:CalendarItem>
-                         <t:Start><%= start %></t:Start>
-                       </t:CalendarItem>
-                     </t:SetItemField>
-                     <% } %>
-                     <% if (!_.isEmpty(end)) { %>
-                     <t:SetItemField>
-                       <t:FieldURI FieldURI="calendar:End" />
-                       <t:CalendarItem>
-                         <t:End><%= end %></t:End>
-                       </t:CalendarItem>
-                     </t:SetItemField>
-                     <% } %>
-                     <% if(!(_.isEmpty(attendees))){ %>
-                       <t:SetItemField>
-                        <t:FieldURI FieldURI="calendar:RequiredAttendees" />
-                        <t:CalendarItem>
-                             <t:RequiredAttendees>
-                               <% _.each(attendees, function(attendee) { %>
-                               <t:Attendee>
-                                 <t:Mailbox>
-                                   <t:EmailAddress><%= attendee %></t:EmailAddress>
-                                   <t:RoutingType>SMTP</t:RoutingType>
-                                   <t:MailboxType>Mailbox</t:MailboxType>
-                                 </t:Mailbox>
-                               </t:Attendee>
-                               <% }) %>
-                            </t:RequiredAttendees>
-                       </t:CalendarItem>
-                    </t:SetItemField>
-                  <%}%>
+                <t:Updates>
+                  <% if (!_.isEmpty(subject)) { %>
+                   <t:SetItemField>
+                      <t:FieldURI FieldURI="item:Subject" />
+                      <t:CalendarItem>
+                         <t:Subject><%= subject %></t:Subject>
+                      </t:CalendarItem>
+                   </t:SetItemField>
+                   <% } %>
+                   <% if (!_.isEmpty(location)) { %>
+                   <t:SetItemField>
+                     <t:FieldURI FieldURI="calendar:Location" />
+                     <t:CalendarItem>
+                        <t:Location><%= location %></t:Location>
+                     </t:CalendarItem>
+                   </t:SetItemField>
+                   <% } %>
+                   <% if (!_.isEmpty(start)) { %>
+                   <t:SetItemField>
+                     <t:FieldURI FieldURI="calendar:Start" />
+                     <t:CalendarItem>
+                       <t:Start><%= start %></t:Start>
+                     </t:CalendarItem>
+                   </t:SetItemField>
+                   <% } %>
+                   <% if (!_.isEmpty(end)) { %>
+                   <t:SetItemField>
+                     <t:FieldURI FieldURI="calendar:End" />
+                     <t:CalendarItem>
+                       <t:End><%= end %></t:End>
+                     </t:CalendarItem>
+                   </t:SetItemField>
+                   <% } %>
                </t:Updates>
             </t:ItemChange>
          </m:ItemChanges>
