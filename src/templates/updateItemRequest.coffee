@@ -13,32 +13,40 @@ module.exports = _.template """
       <m:UpdateItem ConflictResolution="AlwaysOverwrite" SendMeetingInvitationsOrCancellations="SendToAllAndSaveCopy">
          <m:ItemChanges>
             <t:ItemChange>
-               <t:ItemId Id="<%= Id %>" ChangeKey="<%= changeKey %>" />
+               <t:ItemId Id="<%= itemId %>" ChangeKey="<%= changeKey %>" />
                   <t:Updates>
+                    <% if (!_.isEmpty(subject)) { %>
                      <t:SetItemField>
                         <t:FieldURI FieldURI="item:Subject" />
                         <t:CalendarItem>
                            <t:Subject><%= subject %></t:Subject>
                         </t:CalendarItem>
                      </t:SetItemField>
+                     <% } %>
+                     <% if (!_.isEmpty(location)) { %>
                      <t:SetItemField>
                        <t:FieldURI FieldURI="calendar:Location" />
                        <t:CalendarItem>
                           <t:Location><%= location %></t:Location>
                        </t:CalendarItem>
                      </t:SetItemField>
+                     <% } %>
+                     <% if (!_.isEmpty(start)) { %>
                      <t:SetItemField>
                        <t:FieldURI FieldURI="calendar:Start" />
                        <t:CalendarItem>
                          <t:Start><%= start %></t:Start>
                        </t:CalendarItem>
                      </t:SetItemField>
+                     <% } %>
+                     <% if (!_.isEmpty(end)) { %>
                      <t:SetItemField>
                        <t:FieldURI FieldURI="calendar:End" />
                        <t:CalendarItem>
                          <t:End><%= end %></t:End>
                        </t:CalendarItem>
                      </t:SetItemField>
+                     <% } %>
                      <% if(!(_.isEmpty(attendees))){ %>
                        <t:SetItemField>
                         <t:FieldURI FieldURI="calendar:RequiredAttendees" />

@@ -297,7 +297,7 @@ describe 'Exchange', ->
       describe 'when creating an item is successful', ->
         beforeEach (done) ->
           options =
-            Id: 'AnId'
+            itemId: 'AnId'
             changeKey: 'AChangeKey'
             subject: 'Feed the Trolls'
             attendees: ['no@sleep.net', 'til@brooklyn.net']
@@ -327,7 +327,7 @@ describe 'Exchange', ->
       describe 'when creating an item fails', ->
         beforeEach (done) ->
           options =
-            Id: 'AnId'
+            itemId: 'AnId'
             changeKey: 'wrong-wrong'
             subject: 'Feed the Trolls'
             attendees: ['no@sleep.net', 'til@brooklyn.net']
