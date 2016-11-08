@@ -221,7 +221,8 @@ class Exchange
   _parseCalendarItemsInRangeResponse: (response) =>
     responseMessages = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages'
     items = _.castArray _.get responseMessages, 'FindItemResponseMessage.RootFolder.Items.CalendarItem'
-    _.compact _.map(items, 'ItemId.$.Id')
+    validItems = _.reject items, {'IsCancelled': 'true'}
+    _.compact _.map(validItems, 'ItemId.$.Id')
 
   _parseGetItemsErrorResponse: (response) =>
     responseMessage = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage'

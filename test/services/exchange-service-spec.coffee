@@ -18,6 +18,7 @@ CREATE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/createItemErrorResponse.xml
 DELETE_ITEM_RESPONSE        = slurpFile '../fixtures/deleteItemResponse.xml'
 DELETE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/deleteItemErrorResponse.xml'
 GET_CALENDAR_RANGE_ERROR_RESPONSE = slurpFile '../fixtures/getCalendarItemsInRangeErrorResponse.xml'
+GET_CALENDAR_RANGE_RESPONSE = slurpFile '../fixtures/getCalendarItemsInRangeResponse.xml'
 USER_SETTINGS_RESPONSE      = slurpFile '../fixtures/userSettingsResponse.xml'
 UPDATE_ITEM_RESPONSE        = slurpFile '../fixtures/updateItemResponse.xml'
 UPDATE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/updateItemErrorResponse.xml'
@@ -94,6 +95,26 @@ describe 'Exchange', ->
           expect(@authenticated).not.to.exist
 
     describe '->getCalendarItemsInRange', ->
+      context 'when the credentials are valid', ->
+        beforeEach (done) ->
+          @server
+            .get '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @getCalendarItemsInRange = @server
+            .post '/EWS/Exchange.asmx'
+            .reply 200, GET_CALENDAR_RANGE_RESPONSE
+
+          start = '2016-12-28'
+          end   = '1999-12-31'
+          @sut._getItemsByItemIds = ({itemIds}, callback) => callback null, itemIds
+          @sut.getCalendarItemsInRange {start, end}, (@error, @meetings) =>
+            done()
+
+        it 'should have 2 meetings', ->
+          expect(_.size(@meetings)).to.equal 2
+
       describe 'when everything is not cool', ->
         beforeEach (done) ->
           @negotiate = @server
@@ -107,7 +128,8 @@ describe 'Exchange', ->
 
           start = '2016-12-28'
           end   = '1999-12-31'
-          @sut.getCalendarItemsInRange {start, end}, (@error) => done()
+          @sut.getCalendarItemsInRange {start, end}, (@error) =>
+            done()
 
         it 'should make a negotiate request to the exchange server', ->
           expect(@negotiate.isDone).to.be.true
