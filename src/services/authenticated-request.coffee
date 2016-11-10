@@ -22,7 +22,7 @@ class AuthenticatedRequest
 
   do: ({pathname, body}, callback) =>
     transactionId = _.random 0, 1000
-    debugSecrets 'credentials', transactionId, JSON.stringify({@username, @password})
+    debugSecrets 'credentials', transactionId, JSON.stringify({@username})
     @_getRequest {pathname}, (error, request) =>
       return callback error if error?
 
