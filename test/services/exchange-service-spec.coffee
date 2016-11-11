@@ -202,7 +202,7 @@ describe 'Exchange', ->
             sendTo: 'SendToWhatever'
             subject: 'Feed the Trolls'
             body: 'A great way to meet and flourish'
-            attendees: ['blah@whatever.net', 'imdone@whocares.net', null]
+            attendees: ['blah@whatever.net', 'imdone@whocares.net', 'null']
             reminder: '2016-09-08T23:00:00-01:00'
             start: '2016-09-09T00:29:00Z'
             end: '2016-09-09T01:00:00Z'

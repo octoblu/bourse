@@ -1,7 +1,8 @@
-_         = require 'lodash'
-moment    = require 'moment'
-url       = require 'url'
-urlregexp = require 'urlregexp'
+emailAddresses = require 'email-addresses'
+_              = require 'lodash'
+moment         = require 'moment'
+url            = require 'url'
+urlregexp      = require 'urlregexp'
 
 debug = require('debug')('bourse:exchange-service')
 
@@ -49,7 +50,7 @@ class Exchange
       _.kebabCase key
 
   createItem: ({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties }, callback) =>
-    attendees = _.compact attendees
+    attendees = _.filter attendees, @_isEmailAddress
     extendedProperties = @_prepareExtendedProperties extendedProperties
     body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties })
     @authenticatedRequest.doEws { body }, (error, response, extra) =>
@@ -163,6 +164,9 @@ class Exchange
   _isCreateItemError: (response) =>
     responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
     return 'Error' == _.get responseMessage, '$.ResponseClass'
+
+  _isEmailAddress: (str) =>
+    return emailAddresses(str)?
 
   _isGetItemsError: (response) =>
     responseMessage = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage'
