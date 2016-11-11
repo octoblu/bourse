@@ -1,4 +1,4 @@
-{afterEach, beforeEach, describe, it} = global
+{afterEach, beforeEach, context, describe, it} = global
 {expect} = require 'chai'
 
 _ = require 'lodash'
@@ -202,7 +202,7 @@ describe 'Exchange', ->
             sendTo: 'SendToWhatever'
             subject: 'Feed the Trolls'
             body: 'A great way to meet and flourish'
-            attendees: ['blah@whatever.net', 'imdone@whocares.net']
+            attendees: ['blah@whatever.net', 'imdone@whocares.net', null]
             reminder: '2016-09-08T23:00:00-01:00'
             start: '2016-09-09T00:29:00Z'
             end: '2016-09-09T01:00:00Z'
@@ -223,6 +223,9 @@ describe 'Exchange', ->
 
         it 'should make a negotiate request to the exchange server', ->
           expect(@negotiate.isDone).to.be.true
+
+        it 'should make a createItem request to the exchange server', ->
+          expect(@createItem.isDone).to.be.true
 
         it 'should return a calendar event', ->
           expect(@response).to.deep.equal

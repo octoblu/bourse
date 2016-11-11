@@ -49,6 +49,7 @@ class Exchange
       _.kebabCase key
 
   createItem: ({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties }, callback) =>
+    attendees = _.compact attendees
     extendedProperties = @_prepareExtendedProperties extendedProperties
     body = createItemRequest({ timeZone, sendTo, subject, body, reminder, start, end, location, attendees, extendedProperties })
     @authenticatedRequest.doEws { body }, (error, response, extra) =>
