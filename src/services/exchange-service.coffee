@@ -300,6 +300,8 @@ class Exchange
     matches = $('a').map (index, element) =>
       $(element).attr 'href'
 
+    matches = _.reject matches, _.isEmpty
+
     groupedUrls = {}
 
     _.each matches, (match) =>

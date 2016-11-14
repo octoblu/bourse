@@ -2,10 +2,10 @@ _          = require 'lodash'
 moment     = require 'moment'
 stream     = require 'stream'
 url        = require 'url'
-urlregexp  = require 'urlregexp'
 xmlNodes   = require 'xml-nodes'
 xmlObjects = require 'xml-objects'
 xml2js     = require 'xml2js'
+cheerio    = require 'cheerio'
 
 debug = require('debug')('bourse:exchange-stream')
 AuthenticatedRequest = require '../services/authenticated-request'
@@ -147,8 +147,12 @@ class ExchangeStream extends stream.Readable
     }
 
   _parseUrls: (meetingRequest) =>
-    body    = _.get meetingRequest, 'Body._', ''
-    matches = body.match urlregexp
+    body = _.get meetingRequest, 'Body._', ''
+    $ = cheerio.load body
+    matches = $('a').map (index, element) =>
+      $(element).attr 'href'
+
+    matches = _.reject matches, _.isEmpty
 
     groupedUrls = {}
 
