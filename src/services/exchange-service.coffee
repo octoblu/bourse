@@ -2,7 +2,7 @@ emailAddresses = require 'email-addresses'
 _              = require 'lodash'
 moment         = require 'moment'
 url            = require 'url'
-urlregexp      = require 'urlregexp'
+cheerio        = require 'cheerio'
 
 debug = require('debug')('bourse:exchange-service')
 
@@ -295,9 +295,10 @@ class Exchange
     }
 
   _parseUrls: (meetingRequest) =>
-    body    = _.get meetingRequest, 'Body._', ''
-    matches = body.match urlregexp
-    matches = _.reject matches, (match) => _.includes match, 'span'
+    body = _.get meetingRequest, 'Body._', ''
+    $ = cheerio.load body
+    matches = $('a').map (index, element) =>
+      $(element).attr 'href'
 
     groupedUrls = {}
 

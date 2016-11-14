@@ -1,6 +1,6 @@
 {
   "name": "bourse",
-  "version": "8.4.3",
+  "version": "8.5.0",
   "description": "Node wrapper for the Exchange API",
   "main": "index.js",
   "scripts": {
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "async": "^2.0.1",
+    "cheerio": "^0.22.0",
     "coffee-script": "^1.10.0",
     "debug": "^2.2.0",
     "email-addresses": "^2.0.2",
@@ -41,7 +42,6 @@
     "lodash": "^4.15.0",
     "moment": "^2.14.1",
     "request": "^2.74.0",
-    "urlregexp": "^1.0.2",
     "xml-nodes": "^0.1.5",
     "xml-objects": "^1.0.1",
     "xml2js": "^0.4.17"
