@@ -102,7 +102,6 @@ class Exchange
       return callback error if error?
 
       @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, request) =>
-        return callback null, null if error? && error.message == 'ETIMEDOUT'
         return callback error if error?
         return callback null, new ExchangeStream {@connectionOptions, request}
 
