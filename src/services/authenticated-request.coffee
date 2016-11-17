@@ -12,7 +12,7 @@ EWS_PATH = '/EWS/Exchange.asmx'
 AUTODISCOVER_PATH = '/autodiscover/autodiscover.svc'
 
 class AuthenticatedRequest
-  constructor: ({@protocol, @hostname, @port, @username, @password, @authHostname}) ->
+  constructor: ({@protocol, @hostname, @port, @username, @password, @authHostname, @timeout}) ->
     throw new Error 'Missing required parameter: hostname' unless @hostname?
     throw new Error 'Missing required parameter: username' unless @username?
     throw new Error 'Missing required parameter: password' unless @password?
@@ -65,6 +65,7 @@ class AuthenticatedRequest
     options =
       url: urlStr
       agent: keepaliveAgent
+      timeout: @timeout
       headers:
         'Content-Type': 'text/xml; charset=utf-8'
         'Authorization': ntlm.createType1Message(ntlmOptions)

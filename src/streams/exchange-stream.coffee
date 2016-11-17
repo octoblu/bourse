@@ -1,15 +1,12 @@
 _          = require 'lodash'
 moment     = require 'moment'
 stream     = require 'stream'
-url        = require 'url'
 xmlNodes   = require 'xml-nodes'
 xmlObjects = require 'xml-objects'
 xml2js     = require 'xml2js'
-cheerio    = require 'cheerio'
 
 debug = require('debug')('bourse:exchange-stream')
 AuthenticatedRequest = require '../services/authenticated-request'
-getItemRequest = require '../templates/getItemRequest'
 
 XML_OPTIONS = {
   tagNameProcessors: [xml2js.processors.stripPrefix]
@@ -17,7 +14,6 @@ XML_OPTIONS = {
 }
 
 CONNECTION_STATUS_PATH = 'Envelope.Body.GetStreamingEventsResponse.ResponseMessages.GetStreamingEventsResponseMessage.ConnectionStatus'
-MEETING_RESPONSE_PATH = 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.Items'
 
 class ExchangeStream extends stream.Readable
   constructor: ({connectionOptions, @request, timeout}) ->
@@ -51,126 +47,18 @@ class ExchangeStream extends stream.Readable
     @_isClosed = true
     @push null
 
-  _itemIsNotFound: (response) =>
-    responseCode = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.ResponseCode'
-    return responseCode == 'ErrorItemNotFound'
-
-  _normalizeDatetime: (datetime) =>
-    moment(datetime).utc().format()
-
   _onData: (data) =>
     debug '_onData'
 
     return @destroy() if 'Closed' == _.get data, CONNECTION_STATUS_PATH
     @_pushBackTimeout()
 
-    responses = _.get data, 'Envelope.Body.GetStreamingEventsResponse.ResponseMessages'
-    responses = [responses] unless _.isArray responses
-    _.each _.compact(responses), @_onResponse
-
-  _onDeletedItemId: (itemId) =>
-    debug '_onDeletedItemId', itemId
-    return if @_isClosed
-    @push {itemId, eventType: 'deleted'}
-
-  _onItemId: (itemId) =>
-    debug '_onItemId', itemId
-    @authenticatedRequest.doEws body: getItemRequest({itemId}), (error, response, extra) =>
-      return console.error 'oh geez', error.message if error?
-      debug '_onItemId:response', JSON.stringify(extra), JSON.stringify(response)
-
-      return unless response?
-      return if @_itemIsNotFound response
-      return if @_isClosed
-      @push @_parseItemResponse response
-
-  _onModifiedEvents: (events) =>
-    debug '_onModifiedEvents'
-    itemIds = _.uniq _.compact _.map(events, 'ItemId.$.Id')
-    _.each itemIds, @_onItemId
-
-  _onMovedEvents: (events) =>
-    debug '_onMovedEvents'
-    itemIds = _.uniq _.compact _.map(events, 'OldItemId.$.Id')
-    _.each itemIds, @_onDeletedItemId
-
-  _onNotification: (notification) =>
-    debug '_onNotification'
-
-    modifiedEvents = _.get(notification, 'ModifiedEvent')
-    modifiedEvents = [modifiedEvents] unless _.isArray modifiedEvents
-    movedEvents    = _.get(notification, 'MovedEvent')
-    movedEvents    = [movedEvents] unless _.isArray movedEvents
-
-    @_onModifiedEvents modifiedEvents
-    @_onMovedEvents movedEvents
-
-  _onResponse: (response) =>
-    debug '_onResponse'
-    notifications = _.get response, 'GetStreamingEventsResponseMessage.Notifications.Notification'
-    notifications = [notifications] unless _.isArray notifications
-    _.each _.compact(notifications), @_onNotification
+    return if _.isEmpty _.get(data, 'Envelope.Body.GetStreamingEventsResponse.ResponseMessages')
+    @push {timestamp: moment.utc().format()}
 
   _onTimeout: =>
     @destroy()
 
-  _parseAttendee: (requiredAttendee) =>
-    {
-      name: _.get requiredAttendee, 'Mailbox.Name'
-      email: _.get requiredAttendee, 'Mailbox.EmailAddress'
-    }
-
-  _parseAttendees: (meetingRequest) =>
-    requiredAttendees = _.get meetingRequest, 'RequiredAttendees.Attendee'
-    _.map requiredAttendees, @_parseAttendee
-
-  _parseItemResponse: (response) =>
-    items = _.get response, MEETING_RESPONSE_PATH
-    meetingRequest = _.first _.values items
-
-    return {
-      subject: _.get meetingRequest, 'Subject'
-      startTime: @_normalizeDatetime _.get(meetingRequest, 'StartWallClock')
-      endTime:   @_normalizeDatetime _.get(meetingRequest, 'EndWallClock')
-      accepted: "Accept" == _.get(meetingRequest, 'ResponseType')
-      eventType: 'modified'
-      itemId: _.get meetingRequest, 'ItemId.$.Id'
-      location: _.get meetingRequest, 'Location'
-      recipient:
-        name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
-        email: _.get meetingRequest, 'ReceivedBy.Mailbox.EmailAddress'
-      organizer:
-        name: _.get meetingRequest, 'Organizer.Mailbox.Name'
-        email: _.get meetingRequest, 'Organizer.Mailbox.EmailAddress'
-      attendees: @_parseAttendees(meetingRequest)
-      urls: @_parseUrls(meetingRequest)
-    }
-
-  _parseUrls: (meetingRequest) =>
-    body = _.get meetingRequest, 'Body._', ''
-    $ = cheerio.load body
-    matches = $('a').map (index, element) =>
-      $(element).attr 'href'
-
-    matches = _.reject matches, _.isEmpty
-
-    groupedUrls = {}
-
-    _.each matches, (match) =>
-      parsed = url.parse match
-      path = @_reverseHostname parsed.hostname
-
-      urls = _.get(groupedUrls, path, [])
-      urls.push {url: match}
-      _.set groupedUrls, path, urls
-
-    return groupedUrls
-
   _read: =>
-    # @request.startRead()
-
-  _reverseHostname: (hostname) => # meet.citrix.com => com.citrix.meet
-    levels = _.reverse _.split(hostname, '.')
-    return _.join levels, '.'
 
 module.exports = ExchangeStream

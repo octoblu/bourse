@@ -3,24 +3,26 @@
 
 fs            = require 'fs'
 _             = require 'lodash'
+moment        = require 'moment'
 path          = require 'path'
 enableDestroy = require 'server-destroy'
 shmock        = require 'shmock'
+sinon         = require 'sinon'
 {PassThrough} = require 'stream'
 
 ExchangeStream = require '../../src/streams/exchange-stream'
 
 CALENDAR_EVENT = fs.readFileSync path.join(__dirname, '../fixtures/calendarEvent.xml')
 CALENDAR_EVENT2 = fs.readFileSync path.join(__dirname, '../fixtures/calendarEvent2.xml')
-CALENDAR_DELETE_EVENT = fs.readFileSync path.join(__dirname, '../fixtures/deletedNotificationEvent.xml')
 CLOSED_EVENT = fs.readFileSync path.join(__dirname, '../fixtures/closedEvent.xml')
 GET_ITEM_CALENDAR_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/getItemCalendarResponse.xml')
-GET_ITEM_NOT_FOUND_RESPONSE = fs.readFileSync path.join(__dirname, '../fixtures/getItemNotFoundResponse.xml')
 CHALLENGE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/challenge.b64'), encoding: 'utf8'
 NEGOTIATE = _.trim fs.readFileSync path.join(__dirname, '../fixtures/negotiate.b64'), encoding: 'utf8'
 
 describe 'ExchangeStream', ->
   beforeEach ->
+    @clock = sinon.useFakeTimers(moment('2016-11-19T12:00:00Z').valueOf())
+
     @server = shmock()
     enableDestroy @server
     {port} = @server.address()
@@ -40,6 +42,7 @@ describe 'ExchangeStream', ->
   afterEach (done) ->
     @sut.destroy()
     @server.destroy done
+    @clock.restore()
 
   describe 'when the request emits a calendar event', ->
     beforeEach (done) ->
@@ -58,30 +61,7 @@ describe 'ExchangeStream', ->
     it 'should have a calendar event readable', ->
       event = @sut.read()
       expect(event).to.deep.equal {
-        subject: '1 vs 1'
-        startTime: '2016-09-03T02:30:00Z'
-        endTime: '2016-09-03T03:00:00Z'
-        eventType: 'modified'
-        itemId: 'AAMkADYxNGJmNGNmLTIxYTctNDlkOC1hZWRmLTJjMTMzZmI5YmUxNABGAAAAAAACtVr7DjkQQ4cFx7dwBexwBwD9KrxseohjTIFhVu2R9k27AAAAAAEKAAD9KrxseohjTIFhVu2R9k27AAAS/1nWAAA='
-        accepted: true
-        location: 'Conf. Octoblu (Tempe)'
-        recipient:
-          name: 'Conf. Octoblu (Tempe)'
-          email: 'octobluconf@citrix.com'
-        organizer:
-          name: "Roy Zandewager"
-          email: "Roy.Zandewager@citrix.com"
-        attendees: [{
-          name: "Roy Zandewager"
-          email: "Roy.Zandewager@citrix.com"
-        }, {
-          name: "Aaron Heretic"
-          email: "Aaron.Heretic@citrix.com"
-        }]
-        urls:
-          com:
-            citrix:
-              meet: [{url: 'https://meet.citrix.com/roy.vandewater/OYKTG6CI'}]
+        timestamp: '2016-11-19T12:00:00Z'
       }
 
   describe 'when the request emits another calendar event', ->
@@ -101,55 +81,7 @@ describe 'ExchangeStream', ->
     it 'should have a calendar event readable', ->
       event = @sut.read()
       expect(event).to.deep.equal {
-        subject: '1 vs 1'
-        startTime: '2016-09-03T02:30:00Z'
-        endTime: '2016-09-03T03:00:00Z'
-        eventType: 'modified'
-        itemId: 'AAMkADYxNGJmNGNmLTIxYTctNDlkOC1hZWRmLTJjMTMzZmI5YmUxNABGAAAAAAACtVr7DjkQQ4cFx7dwBexwBwD9KrxseohjTIFhVu2R9k27AAAAAAEKAAD9KrxseohjTIFhVu2R9k27AAAS/1nWAAA='
-        location: 'Conf. Octoblu (Tempe)'
-        recipient:
-          name: 'Conf. Octoblu (Tempe)'
-          email: 'octobluconf@citrix.com'
-        accepted: true
-        organizer:
-          name: "Roy Zandewager"
-          email: "Roy.Zandewager@citrix.com"
-        attendees: [{
-          name: "Roy Zandewager"
-          email: "Roy.Zandewager@citrix.com"
-        }, {
-          name: "Aaron Heretic"
-          email: "Aaron.Heretic@citrix.com"
-        }]
-        urls:
-          com:
-            citrix:
-              meet: [{url: 'https://meet.citrix.com/roy.vandewater/OYKTG6CI'}]
-      }
-
-  describe 'when the request emits a deleted item event', ->
-    beforeEach (done) ->
-      done = _.debounce _.once(done), 200
-      @buffer = []
-
-      @sut.on 'readable', => @buffer.push @sut.read()
-      @sut.on 'readable', done
-
-      @server
-        .get '/EWS/Exchange.asmx'
-        .set 'Authorization', NEGOTIATE
-        .reply 401, '', {'WWW-Authenticate': CHALLENGE}
-
-      @getUser = @server
-        .post '/EWS/Exchange.asmx'
-        .reply 200, GET_ITEM_NOT_FOUND_RESPONSE
-
-      @request.write CALENDAR_DELETE_EVENT
-
-    it 'should have a deleted calendar event readable', ->
-      expect(@buffer).to.contain {
-        eventType: 'deleted'
-        itemId: 'AAMkADYxNGJmNGNmLTIxYTctNDlkOC1hZWRmLTJjMTMzZmI5YmUxNABGAAAAAAACtVr7DjkQQ4cFx7dwBexwBwD9KrxseohjTIFhVu2R9k27AAAAAAENAAD9KrxseohjTIFhVu2R9k27AAAS/0JVAAA='
+        timestamp: '2016-11-19T12:00:00Z'
       }
 
   describe 'when the request emits a closed event', ->
@@ -165,8 +97,9 @@ describe 'ExchangeStream', ->
 
   describe 'when the request times out', ->
     beforeEach (done) ->
+      @clock.tick 300
       @sut.on 'end', done
       @sut.on 'readable', => @sut.read() # end will not emit until stream is fully read
 
     it 'should close the stream', ->
-      # Getting here is good enough
+      # Getting here is not good enough
