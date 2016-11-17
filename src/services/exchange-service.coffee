@@ -190,7 +190,7 @@ class Exchange
     }
 
   _parseAttendees: (meetingRequest) =>
-    requiredAttendees = _.get meetingRequest, 'RequiredAttendees.Attendee'
+    requiredAttendees = _.castArray _.get(meetingRequest, 'RequiredAttendees.Attendee')
     _.map requiredAttendees, @_parseAttendee
 
   _parseCreateItemErrorResponse: (response) =>
