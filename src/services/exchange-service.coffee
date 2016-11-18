@@ -3,6 +3,7 @@ _              = require 'lodash'
 moment         = require 'moment'
 url            = require 'url'
 cheerio        = require 'cheerio'
+urlRegex       = require 'url-regex'
 
 debug = require('debug')('bourse:exchange-service')
 
@@ -297,12 +298,12 @@ class Exchange
   _parseUrls: (meetingRequest) =>
     body = _.get meetingRequest, 'Body._', ''
     location = _.get meetingRequest 'Location', ''
-    body += location
+    locationUrls = urlRegex().test(location)
     $ = cheerio.load body
     matches = $('a').map (index, element) =>
       $(element).attr 'href'
 
-    matches = _.reject matches, _.isEmpty
+    matches = _.reject(_.union(matches, locationUrls), _.isEmpty)
 
     groupedUrls = {}
 
