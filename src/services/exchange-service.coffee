@@ -297,7 +297,7 @@ class Exchange
 
   _parseUrls: (meetingRequest) =>
     body = _.get meetingRequest, 'Body._', ''
-    location = _.get meetingRequest 'Location', ''
+    location = _.get meetingRequest, 'Location', ''
     locationUrls = urlRegex().test(location)
     $ = cheerio.load body
     matches = $('a').map (index, element) =>
