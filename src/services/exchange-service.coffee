@@ -26,7 +26,7 @@ updateItemRequest              = require '../templates/updateItemRequest'
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
 
 class Exchange
-  constructor: ({protocol, hostname, port, @username, @password, authHostname}) ->
+  constructor: ({protocol, hostname, port, @username, @password, authHostname, timeout}) ->
     throw new Error 'Missing required parameter: hostname' unless hostname?
     throw new Error 'Missing required parameter: username' unless @username?
     throw new Error 'Missing required parameter: password' unless @password?
@@ -34,7 +34,7 @@ class Exchange
     protocol ?= 'https'
     port ?= 443
 
-    @connectionOptions = {protocol, hostname, port, @username, @password, authHostname}
+    @connectionOptions = {protocol, hostname, port, @username, @password, authHostname, timeout}
     @authenticatedRequest = new AuthenticatedRequest @connectionOptions
 
   authenticate: (callback) =>
