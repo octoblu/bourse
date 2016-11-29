@@ -32,6 +32,8 @@ class ExchangeStream extends stream.Readable
       .pipe(xmlObjects(XML_OPTIONS))
       .on 'data', @_onData
 
+    @request.once 'error', @_onError
+
     @_pushBackTimeout = _.debounce @_onTimeout, timeout
     @_pushBackTimeout()
 
@@ -55,6 +57,10 @@ class ExchangeStream extends stream.Readable
 
     return if _.isEmpty _.get(data, 'Envelope.Body.GetStreamingEventsResponse.ResponseMessages')
     @push {timestamp: moment.utc().format()}
+
+  _onError: (error) =>
+    console.error error.stack
+    @destroy()
 
   _onTimeout: =>
     @destroy()

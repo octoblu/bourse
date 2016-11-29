@@ -45,7 +45,6 @@ class Exchange
 
       callback null, (statusCode == 200), {statusCode}
 
-
   _prepareExtendedProperties: (extendedProperties) =>
     _.mapKeys extendedProperties, (value, key) =>
       _.kebabCase key
