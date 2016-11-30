@@ -306,7 +306,7 @@ class Exchange
     matches = $('a').map (index, element) =>
       $(element).attr 'href'
 
-    matches = _.compact _.union(body, locationUrls, entityUrls)
+    matches = _.compact _.union(matches, locationUrls, entityUrls)
 
     groupedUrls = {}
 
