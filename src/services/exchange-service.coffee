@@ -303,10 +303,10 @@ class Exchange
     entityUrls = _.map entityExtraction, 'Url'
 
     $ = cheerio.load body
-    matches = $('a').map (index, element) =>
+    bodyUrls = $('a').map (index, element) =>
       $(element).attr 'href'
 
-    matches = _.compact _.union(matches, locationUrls, entityUrls)
+    matches = _.compact _.union(bodyUrls, locationUrls, entityUrls)
 
     groupedUrls = {}
 
@@ -315,9 +315,7 @@ class Exchange
       path = @_reverseHostname parsed.hostname
 
       urls = _.get(groupedUrls, path, [])
-      unless _.isArray(urls)
-        console.error('urls is not an array', JSON.stringify(urls))
-        urls = []
+      return unless _.isArray(urls)
       urls.push {url: match}
       _.set groupedUrls, path, urls
 
