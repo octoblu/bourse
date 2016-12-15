@@ -315,6 +315,9 @@ class Exchange
       path = @_reverseHostname parsed.hostname
 
       urls = _.get(groupedUrls, path, [])
+      unless _.isArray(urls)
+        console.error('urls is not an array', JSON.stringify(urls))
+        urls = []
       urls.push {url: match}
       _.set groupedUrls, path, urls
 
