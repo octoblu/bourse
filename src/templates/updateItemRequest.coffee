@@ -47,6 +47,22 @@ module.exports = _.template """
                      </t:CalendarItem>
                    </t:SetItemField>
                    <% } %>
+                   <% if (!_.isEmpty(attendees)) { %>
+                   <t:SetItemField>
+                     <t:FieldURI FieldURI="calendar:RequiredAttendees" />
+                     <t:CalendarItem>
+                       <t:RequiredAttendees>
+                       <% _.each(attendees, function(attendee){ %>
+                         <t:Attendee>
+                           <t:Mailbox>
+                             <t:EmailAddress><%= attendee %></t:EmailAddress>
+                           </t:Mailbox>
+                         </t:Attendee>
+                       <% }) %>
+                       </t:RequiredAttendees>
+                     </t:CalendarItem>
+                   </t:SetItemField>
+                   <% } %>
                </t:Updates>
             </t:ItemChange>
          </m:ItemChanges>
