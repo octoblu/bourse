@@ -245,7 +245,6 @@ class Exchange
     @_parseMeetingRequest meetingRequest
 
   _parseMeetingRequest: (meetingRequest) =>
-    console.log {meetingRequest}
     return {
       subject: _.get meetingRequest, 'Subject'
       startTime: @_normalizeDatetime _.get(meetingRequest, 'StartWallClock')
