@@ -206,16 +206,20 @@ class Exchange
     ResponseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
     Item = _.get ResponseMessage, 'Items.CalendarItem'
     {
-      itemId:    _.get Item, 'ItemId.$.Id'
-      changeKey: _.get Item, 'ItemId.$.ChangeKey'
+      itemId:       _.get Item, 'ItemId.$.Id'
+      changeKey:    _.get Item, 'ItemId.$.ChangeKey'
+      UID:          _.get Item, 'UID'
+      recurrenceId: _.get Item, 'RecurrenceId'
     }
 
   _parseDeleteItemResponse: (response) =>
     ResponseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
     Item = _.get ResponseMessage, 'Items.CalendarItem'
     {
-      itemId:    _.get Item, 'ItemId.$.Id'
-      changeKey: _.get Item, 'ItemId.$.ChangeKey'
+      itemId:       _.get Item, 'ItemId.$.Id'
+      changeKey:    _.get Item, 'ItemId.$.ChangeKey'
+      UID:          _.get Item, 'UID'
+      recurrenceId: _.get Item, 'RecurrenceId'
     }
 
   _parseCalendarItemsInRangeErrorResponse: (response) =>
@@ -241,6 +245,7 @@ class Exchange
     @_parseMeetingRequest meetingRequest
 
   _parseMeetingRequest: (meetingRequest) =>
+    console.log {meetingRequest}
     return {
       subject: _.get meetingRequest, 'Subject'
       startTime: @_normalizeDatetime _.get(meetingRequest, 'StartWallClock')
@@ -249,6 +254,8 @@ class Exchange
       eventType: 'modified'
       itemId: _.get meetingRequest, 'ItemId.$.Id'
       changeKey: _.get meetingRequest, 'ItemId.$.ChangeKey', null
+      UID: _.get meetingRequest, 'UID'
+      recurrenceId: _.get meetingRequest, 'RecurrenceId'
       location: _.get meetingRequest, 'Location'
       recipient:
         name: _.get meetingRequest, 'ReceivedBy.Mailbox.Name'
@@ -291,8 +298,10 @@ class Exchange
     ResponseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'
     Item = _.get ResponseMessage, 'Items.CalendarItem'
     {
-      itemId:    _.get Item, 'ItemId.$.Id'
-      changeKey: _.get Item, 'ItemId.$.ChangeKey'
+      itemId:       _.get Item, 'ItemId.$.Id'
+      changeKey:    _.get Item, 'ItemId.$.ChangeKey'
+      UID:          _.get Item, 'UID'
+      recurrenceId: _.get Item, 'RecurrenceId'
     }
 
   _parseUrls: (meetingRequest) =>

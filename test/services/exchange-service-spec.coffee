@@ -231,6 +231,8 @@ describe 'Exchange', ->
           expect(@response).to.deep.equal
             itemId: 'AnId'
             changeKey: 'AChangeKey'
+            recurrenceId: 'recurrence-id'
+            UID: 'the-uid'
 
       describe 'when creating an item returns an error', ->
         beforeEach (done) ->
@@ -270,6 +272,8 @@ describe 'Exchange', ->
           options =
             itemId:    'deleteItemId'
             changeKey: 'deleteItemChangeKey'
+            recurrenceId: 'recurrence-id'
+            UID: 'the-uid'
 
           @negotiate = @server
             .get '/EWS/Exchange.asmx'
@@ -292,6 +296,8 @@ describe 'Exchange', ->
           expect(@response).to.deep.equal
             itemId: 'deleteItemId'
             changeKey: 'deleteItemChangeKeyNew'
+            recurrenceId: 'recurrence-id'
+            UID: 'the-uid'
 
       describe 'when deleting an item returns an error', ->
         beforeEach (done) ->
@@ -348,6 +354,8 @@ describe 'Exchange', ->
           expect(@response).to.deep.equal
             itemId: 'AnId'
             changeKey: 'AChangeKey'
+            recurrenceId: 'recurrence-id'
+            UID: 'the-uid'
 
       describe 'when creating an item fails', ->
         beforeEach (done) ->

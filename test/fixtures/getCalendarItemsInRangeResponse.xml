@@ -12,12 +12,16 @@
             <t:Items>
               <t:CalendarItem>
                 <t:ItemId Id="AAMkADYxNGJmNGNmLTIxYTctNDlkOC1hZWRmLTJjMTMzZmI5YmUxNABGAAAAAAACtVr7DjkQQ4cFx7dwBexwBwD9KrxseohjTIFhVu2R9k27AAAAAAEKAAD9KrxseohjTIFhVu2R9k27AAAS/1nWAAA=" ChangeKey="DwAAABYAAAD9KrxseohjTIFhVu2R9k27AAAS/d/e"/>
+                <t:UID>the-uid</t:UID>
+                <t:RecurrenceId>recurrence-id</t:RecurrenceId>
                 <t:Subject>Roy van de Water Non-recurring</t:Subject>
                 <t:Start>2016-09-28T02:00:00Z</t:Start>
                 <t:End>2016-09-28T02:30:00Z</t:End>
               </t:CalendarItem>
               <t:CalendarItem>
                 <t:ItemId Id="AAMkADYxNGJmNGNmLTIxYTctNDlkOC1hZWRmLTJjMTMzZmI5YmUxNABGAAAAAAACtVr7DjkQQ4cFx7dwBexwBwD9KrxseohjTIFhVu2R9k27AAAAAAEKAAD9KrxseohjTIFhVu2R9k27AAAS/1nWAAA=" ChangeKey="DwAAABYAAAD9KrxseohjTIFhVu2R9k27AAAS/eAD"/>
+                <t:UID>the-uid</t:UID>
+                <t:RecurrenceId>recurrence-id</t:RecurrenceId>
                 <t:Subject>Roy van de Water Recurring</t:Subject>
                 <t:Start>2016-09-28T04:00:00Z</t:Start>
                 <t:End>2016-09-28T04:30:00Z</t:End>

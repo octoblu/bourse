@@ -20,6 +20,8 @@
           <m:Items>
             <t:CalendarItem>
               <t:ItemId Id="deleteItemId" ChangeKey="deleteItemChangeKeyNew"/>
+              <t:UID>the-uid</t:UID>
+              <t:RecurrenceId>recurrence-id</t:RecurrenceId>
             </t:CalendarItem>
             <t:MeetingCancellation>
               <t:ItemId Id="cancellationItemId" ChangeKey="cancellationItemChangeKey"/>
