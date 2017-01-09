@@ -10,19 +10,20 @@ debug = require('debug')('bourse:exchange-service')
 AuthenticatedRequest = require './authenticated-request'
 ExchangeStream       = require '../streams/exchange-stream'
 
-createItemRequest                   = require '../templates/createItemRequest'
-deleteItemRequest                   = require '../templates/deleteItemRequest'
-getCalendarItemsInRangeRequest      = require '../templates/getCalendarItemsInRangeRequest'
-getIdAndKey                         = require '../templates/getIdAndKey'
-getInboxRequest                     = require '../templates/getInboxRequest'
-getItemRequest                      = require '../templates/getItemRequest'
-getItemsByItemIdsRequest            = require '../templates/getItemsByItemIdsRequest'
-getItems                            = require '../templates/getItems'
-getStreamingEventsRequest           = require '../templates/getStreamingEventsRequest'
-getSubscriptionRequest              = require '../templates/getSubscriptionRequest'
-getUserCalendarConfigurationRequest = require '../templates/getUserCalendarConfigurationRequest'
-getUserSettingsRequest              = require '../templates/getUserSettingsRequest'
-updateItemRequest                   = require '../templates/updateItemRequest'
+createItemRequest                      = require '../templates/createItemRequest'
+deleteItemRequest                      = require '../templates/deleteItemRequest'
+getCalendarItemsInRangeRequest         = require '../templates/getCalendarItemsInRangeRequest'
+getIdAndKey                            = require '../templates/getIdAndKey'
+getInboxRequest                        = require '../templates/getInboxRequest'
+getItemRequest                         = require '../templates/getItemRequest'
+getItemsByItemIdsRequest               = require '../templates/getItemsByItemIdsRequest'
+getItems                               = require '../templates/getItems'
+getStreamingEventsRequest              = require '../templates/getStreamingEventsRequest'
+getSubscriptionRequest                 = require '../templates/getSubscriptionRequest'
+getUserCalendarConfigurationRequest    = require '../templates/getUserCalendarConfigurationRequest'
+getUserSettingsRequest                 = require '../templates/getUserSettingsRequest'
+updateItemRequest                      = require '../templates/updateItemRequest'
+updateUserCalendarConfigurationRequest = require '../templates/updateUserCalendarConfigurationRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
 
@@ -34,7 +35,6 @@ class Exchange
 
     protocol ?= 'https'
     port ?= 443
-
     @connectionOptions = {protocol, hostname, port, @username, @password, authHostname, timeout}
     @authenticatedRequest = new AuthenticatedRequest @connectionOptions
 
@@ -135,6 +135,11 @@ class Exchange
       return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
       return callback @_parseUpdateItemErrorResponse response if @_isUpdateItemError response
       return callback null, @_parseUpdateItemResponse response
+
+  updateUserCalendarConfiguration: ({piAutoProcess}, callback) =>
+    @authenticatedRequest.doEws body: updateUserCalendarConfigurationRequest({piAutoProcess}), (error, response) =>
+      return callback error if error?
+      @_parseUserCalendarConfigurationUpdateResponse response, callback
 
   whoami: (callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({@username}), (error, response, extra) =>
@@ -339,7 +344,7 @@ class Exchange
   _parseUserCalendarConfigurationResponse: (response, callback) =>
     ResponseMessage = _.get response, 'Envelope.Body.GetUserConfigurationResponse.ResponseMessages.GetUserConfigurationResponseMessage'
     ResponseCode    = _.get ResponseMessage, 'ResponseCode'
-    DictionaryEntry = _.get ResponseMessage, 'UserConfiguration.Dictionary.DictionaryEntry'
+    DictionaryEntry = _.castArray _.get(ResponseMessage, 'UserConfiguration.Dictionary.DictionaryEntry')
     return callback new Error "Unexpected ResponseCode #{ResponseCode}" unless ResponseCode == 'NoError'
 
     piAutoProcess = _.find(DictionaryEntry, (entry) => 'piAutoProcess' == _.get(entry, 'DictionaryKey.Value'))
@@ -347,6 +352,12 @@ class Exchange
     callback null, {
       piAutoProcess: 'true' == _.get(piAutoProcess, 'DictionaryValue.Value')
     }
+
+  _parseUserCalendarConfigurationUpdateResponse: (response, callback) =>
+    ResponseMessage = _.get response, 'Envelope.Body.UpdateUserConfigurationResponse.ResponseMessages.UpdateUserConfigurationResponseMessage'
+    ResponseCode    = _.get ResponseMessage, 'ResponseCode'
+    return callback new Error "Unexpected ResponseCode #{ResponseCode}" unless ResponseCode == 'NoError'
+    return callback null
 
   _parseUserSettingsResponse: (response, callback) =>
     UserResponse = _.get response, 'Envelope.Body.GetUserSettingsResponseMessage.Response.UserResponses.UserResponse'
