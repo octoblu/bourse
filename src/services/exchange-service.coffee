@@ -10,18 +10,19 @@ debug = require('debug')('bourse:exchange-service')
 AuthenticatedRequest = require './authenticated-request'
 ExchangeStream       = require '../streams/exchange-stream'
 
-createItemRequest              = require '../templates/createItemRequest'
-deleteItemRequest              = require '../templates/deleteItemRequest'
-getCalendarItemsInRangeRequest = require '../templates/getCalendarItemsInRangeRequest'
-getIdAndKey                    = require '../templates/getIdAndKey'
-getInboxRequest                = require '../templates/getInboxRequest'
-getItemRequest                 = require '../templates/getItemRequest'
-getItemsByItemIdsRequest       = require '../templates/getItemsByItemIdsRequest'
-getItems                       = require '../templates/getItems'
-getStreamingEventsRequest      = require '../templates/getStreamingEventsRequest'
-getSubscriptionRequest         = require '../templates/getSubscriptionRequest'
-getUserSettingsRequest         = require '../templates/getUserSettingsRequest'
-updateItemRequest              = require '../templates/updateItemRequest'
+createItemRequest                   = require '../templates/createItemRequest'
+deleteItemRequest                   = require '../templates/deleteItemRequest'
+getCalendarItemsInRangeRequest      = require '../templates/getCalendarItemsInRangeRequest'
+getIdAndKey                         = require '../templates/getIdAndKey'
+getInboxRequest                     = require '../templates/getInboxRequest'
+getItemRequest                      = require '../templates/getItemRequest'
+getItemsByItemIdsRequest            = require '../templates/getItemsByItemIdsRequest'
+getItems                            = require '../templates/getItems'
+getStreamingEventsRequest           = require '../templates/getStreamingEventsRequest'
+getSubscriptionRequest              = require '../templates/getSubscriptionRequest'
+getUserCalendarConfigurationRequest = require '../templates/getUserCalendarConfigurationRequest'
+getUserSettingsRequest              = require '../templates/getUserSettingsRequest'
+updateItemRequest                   = require '../templates/updateItemRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
 
@@ -109,6 +110,11 @@ class Exchange
     @authenticatedRequest.getOpenEwsRequest body: getStreamingEventsRequest({ subscriptionId }), (error, response) =>
       return callback error if error?
       return callback null, response
+
+  getUserCalendarConfiguration: (callback) =>
+    @authenticatedRequest.doEws body: getUserCalendarConfigurationRequest(), (error, response) =>
+      return callback error if error?
+      @_parseUserCalendarConfigurationResponse response, callback
 
   getUserSettingsRequest: ({username}, callback) =>
     @authenticatedRequest.doAutodiscover body: getUserSettingsRequest({ username }), (error, response) =>
@@ -329,6 +335,18 @@ class Exchange
       _.set groupedUrls, path, urls
 
     return groupedUrls
+
+  _parseUserCalendarConfigurationResponse: (response, callback) =>
+    ResponseMessage = _.get response, 'Envelope.Body.GetUserConfigurationResponse.ResponseMessages.GetUserConfigurationResponseMessage'
+    ResponseCode    = _.get ResponseMessage, 'ResponseCode'
+    DictionaryEntry = _.get ResponseMessage, 'UserConfiguration.Dictionary.DictionaryEntry'
+    return callback new Error "Unexpected ResponseCode #{ResponseCode}" unless ResponseCode == 'NoError'
+
+    piAutoProcess = _.find(DictionaryEntry, (entry) => 'piAutoProcess' == _.get(entry, 'DictionaryKey.Value'))
+
+    callback null, {
+      piAutoProcess: 'true' == _.get(piAutoProcess, 'DictionaryValue.Value')
+    }
 
   _parseUserSettingsResponse: (response, callback) =>
     UserResponse = _.get response, 'Envelope.Body.GetUserSettingsResponseMessage.Response.UserResponses.UserResponse'
