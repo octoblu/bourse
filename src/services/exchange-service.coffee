@@ -71,6 +71,7 @@ class Exchange
     body = getCalendarItemsInRangeRequest({ start, end })
     @authenticatedRequest.doEws { body }, (error, response, extra) =>
       return callback error if error?
+      debug(JSON.stringify(extra, null, 2)) if extra.statusCode != 200
       return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
       return callback @_parseCalendarItemsInRangeErrorResponse response if @_isCalendarItemsInRangeError response
       itemIds = @_parseCalendarItemsInRangeResponse response
