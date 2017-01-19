@@ -19,16 +19,14 @@ module.exports = _.template """
             <t:Subject><%= subject %></t:Subject>
             <t:Body BodyType="HTML"><%= body %></t:Body>
             <t:ReminderDueBy><%= reminder %></t:ReminderDueBy>
-            <% if (!_.isEmpty(extendedProperties)) { %>
-            <t:ExtendedProperty>
-              <% _.each(extendedProperties, function(value, key) { %>
+            <% _.each(extendedProperties, function(value, key) { %>
+              <t:ExtendedProperty>
                 <t:ExtendedFieldURI DistinguishedPropertySetId="InternetHeaders"
                                     PropertyName="X-<%= key %>"
                                     PropertyType="String" />
                 <t:Value><%= value %></t:Value>
-              <% }) %>
-            </t:ExtendedProperty>
-            <% } %>
+              </t:ExtendedProperty>
+            <% }) %>
             <t:Start><%= start %></t:Start>
             <t:End><%= end %></t:End>
             <t:Location><%= location %></t:Location>
