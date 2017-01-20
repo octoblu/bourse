@@ -12,7 +12,16 @@ module.exports = _.template """
   <soap:Body>
     <m:FindItem Traversal="Shallow">
       <m:ItemShape>
-        <t:BaseShape>IdOnly</t:BaseShape>
+        <t:BaseShape>AllProperties</t:BaseShape>
+        <% if (!_.isEmpty(extendedProperties)) { %>
+        <t:AdditionalProperties>
+          <% _.each(extendedProperties, function(value, key) { %>
+            <t:ExtendedFieldURI DistinguishedPropertySetId="InternetHeaders"
+                                PropertyName="X-<%= key %>"
+                                PropertyType="String" />
+          <% }) %>
+        </t:AdditionalProperties>
+        <% } %>
       </m:ItemShape>
       <m:Restriction>
         <t:IsEqualTo>

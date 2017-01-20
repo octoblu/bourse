@@ -66,10 +66,13 @@ class Exchange
       return callback error if error?
       return callback null, @_parseDeleteItemResponse response
 
-  findItemsByExtendedProperty: ({Id, key, value}, callback) =>
-    @authenticatedRequest.doEws body: findItemsByExtendedPropertyRequest({ Id, key, value }), (error, response) =>
+  findItemsByExtendedProperty: ({Id, key, value, extendedProperties}, callback) =>
+    extendedProperties = @_prepareExtendedProperties extendedProperties
+    @authenticatedRequest.doEws body: findItemsByExtendedPropertyRequest({ Id, key, value, extendedProperties }), (error, response, extra) =>
       return callback error if error?
-      return callback null, response
+      return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
+      return callback @_parseFindItemsErrorResponse response if @_isFindItemsError response
+      return callback null, @_parseFindItemsResponse response
 
   getCalendarItemsInRange: ({ start, end, extendedProperties }, callback) =>
     start = moment.utc start
@@ -191,6 +194,10 @@ class Exchange
     responseMessage = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage'
     return 'Error' == _.get responseMessage, '$.ResponseClass'
 
+  _isFindItemsError: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages.FindItemResponseMessage'
+    return 'Error' == _.get responseMessage, '$.ResponseClass'
+
   _isItemNotFound: (response) =>
     responseCode = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage.ResponseCode'
     return responseCode == 'ErrorItemNotFound'
@@ -251,6 +258,12 @@ class Exchange
     items = _.castArray _.get responseMessages, 'FindItemResponseMessage.RootFolder.Items.CalendarItem'
     _.compact _.map(items, 'ItemId.$.Id')
 
+  _parseFindItemsErrorResponse: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages.FindItemResponseMessage'
+    error = new Error _.get(responseMessage, 'MessageText')
+    error.code = 422
+    return error
+
   _parseGetItemsErrorResponse: (response) =>
     responseMessage = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages.GetItemResponseMessage'
     error = new Error _.get(responseMessage, 'MessageText')
@@ -299,6 +312,15 @@ class Exchange
     ResponseMessages = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages'
     GetItemResponseMessages = _.castArray _.get(ResponseMessages, 'GetItemResponseMessage')
     meetingRequests = _.map GetItemResponseMessages, 'Items.CalendarItem'
+    meetingRequests = _.reject meetingRequests, {'IsCancelled': 'true'}
+
+    _.map meetingRequests, @_parseMeetingRequest
+
+  _parseFindItemsResponse: (response) =>
+    console.log JSON.stringify response, null, 2
+    ResponseMessages = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages'
+    GetItemResponseMessages = _.castArray _.get(ResponseMessages, 'FindItemResponseMessage')
+    meetingRequests = _.map GetItemResponseMessages, 'RootFolder.Items.CalendarItem'
     meetingRequests = _.reject meetingRequests, {'IsCancelled': 'true'}
 
     _.map meetingRequests, @_parseMeetingRequest
