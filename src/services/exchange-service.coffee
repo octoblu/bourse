@@ -311,7 +311,7 @@ class Exchange
   _parseGetItemsResponse: (response) =>
     ResponseMessages = _.get response, 'Envelope.Body.GetItemResponse.ResponseMessages'
     GetItemResponseMessages = _.castArray _.get(ResponseMessages, 'GetItemResponseMessage')
-    meetingRequests = _.map GetItemResponseMessages, 'Items.CalendarItem'
+    meetingRequests = _.compact _.map GetItemResponseMessages, 'Items.CalendarItem'
     meetingRequests = _.reject meetingRequests, {'IsCancelled': 'true'}
 
     _.map meetingRequests, @_parseMeetingRequest
@@ -319,7 +319,7 @@ class Exchange
   _parseFindItemsResponse: (response) =>
     ResponseMessages = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages'
     GetItemResponseMessages = _.castArray _.get(ResponseMessages, 'FindItemResponseMessage')
-    meetingRequests = _.map GetItemResponseMessages, 'RootFolder.Items.CalendarItem'
+    meetingRequests = _.compact _.map GetItemResponseMessages, 'RootFolder.Items.CalendarItem'
     meetingRequests = _.reject meetingRequests, {'IsCancelled': 'true'}
 
     _.map meetingRequests, @_parseMeetingRequest
