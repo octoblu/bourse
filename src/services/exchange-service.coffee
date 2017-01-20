@@ -317,7 +317,6 @@ class Exchange
     _.map meetingRequests, @_parseMeetingRequest
 
   _parseFindItemsResponse: (response) =>
-    console.log JSON.stringify response, null, 2
     ResponseMessages = _.get response, 'Envelope.Body.FindItemResponse.ResponseMessages'
     GetItemResponseMessages = _.castArray _.get(ResponseMessages, 'FindItemResponseMessage')
     meetingRequests = _.map GetItemResponseMessages, 'RootFolder.Items.CalendarItem'

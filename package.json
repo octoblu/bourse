@@ -1,6 +1,6 @@
 {
   "name": "bourse",
-  "version": "10.7.1",
+  "version": "10.7.2",
   "description": "Node wrapper for the Exchange API",
   "main": "index.js",
   "scripts": {
