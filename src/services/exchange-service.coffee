@@ -16,6 +16,7 @@ getCalendarItemsInRangeRequest         = require '../templates/getCalendarItemsI
 getIdAndKey                            = require '../templates/getIdAndKey'
 getInboxRequest                        = require '../templates/getInboxRequest'
 getItemRequest                         = require '../templates/getItemRequest'
+findItemsByExtendedPropertyRequest     = require '../templates/findItemsByExtendedPropertyRequest'
 getItemsByItemIdsRequest               = require '../templates/getItemsByItemIdsRequest'
 getItems                               = require '../templates/getItems'
 getStreamingEventsRequest              = require '../templates/getStreamingEventsRequest'
@@ -64,6 +65,11 @@ class Exchange
     @authenticatedRequest.doEws body: deleteItemRequest({Id, changeKey, cancelReason}), (error, response) =>
       return callback error if error?
       return callback null, @_parseDeleteItemResponse response
+
+  findItemsByExtendedProperty: ({Id, key, value}, callback) =>
+    @authenticatedRequest.doEws body: findItemsByExtendedPropertyRequest({ Id, key, value }), (error, response) =>
+      return callback error if error?
+      return callback null, response
 
   getCalendarItemsInRange: ({ start, end, extendedProperties }, callback) =>
     start = moment.utc start
