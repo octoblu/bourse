@@ -11,18 +11,19 @@ Exchange = require '../../src/services/exchange-service'
 
 slurpFile = (filename) => _.trim fs.readFileSync path.join(__dirname, filename), encoding: 'utf8'
 
-CHALLENGE                   = slurpFile '../fixtures/challenge.b64'
-NEGOTIATE                   = slurpFile '../fixtures/negotiate.b64'
-CREATE_ITEM_RESPONSE        = slurpFile '../fixtures/createItemResponse.xml'
-CREATE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/createItemErrorResponse.xml'
-DELETE_ITEM_RESPONSE        = slurpFile '../fixtures/deleteItemResponse.xml'
-DELETE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/deleteItemErrorResponse.xml'
-GET_CALENDAR_RANGE_ERROR_RESPONSE = slurpFile '../fixtures/getCalendarItemsInRangeErrorResponse.xml'
-GET_CALENDAR_RANGE_RESPONSE = slurpFile '../fixtures/getCalendarItemsInRangeResponse.xml'
-USER_SETTINGS_RESPONSE      = slurpFile '../fixtures/userSettingsResponse.xml'
-UPDATE_ITEM_RESPONSE        = slurpFile '../fixtures/updateItemResponse.xml'
-UPDATE_ITEM_ERROR_RESPONSE  = slurpFile '../fixtures/updateItemErrorResponse.xml'
-NEGOTIATE_CUSTOM_HOSTNAME   = slurpFile '../fixtures/negotiate-custom-hostname.b64'
+CHALLENGE                            = slurpFile '../fixtures/challenge.b64'
+NEGOTIATE                            = slurpFile '../fixtures/negotiate.b64'
+CREATE_ITEM_RESPONSE                 = slurpFile '../fixtures/createItemResponse.xml'
+CREATE_ITEM_ERROR_RESPONSE           = slurpFile '../fixtures/createItemErrorResponse.xml'
+DELETE_ITEM_RESPONSE                 = slurpFile '../fixtures/deleteItemResponse.xml'
+DELETE_ITEM_ERROR_RESPONSE           = slurpFile '../fixtures/deleteItemErrorResponse.xml'
+GET_CALENDAR_RANGE_ERROR_RESPONSE    = slurpFile '../fixtures/getCalendarItemsInRangeErrorResponse.xml'
+GET_CALENDAR_RANGE_RESPONSE          = slurpFile '../fixtures/getCalendarItemsInRangeResponse.xml'
+GET_CALENDAR_ITEM_ALTERNATE_RESPONSE = slurpFile '../fixtures/getItemCalendarAlternateResponse.xml'
+USER_SETTINGS_RESPONSE               = slurpFile '../fixtures/userSettingsResponse.xml'
+UPDATE_ITEM_RESPONSE                 = slurpFile '../fixtures/updateItemResponse.xml'
+UPDATE_ITEM_ERROR_RESPONSE           = slurpFile '../fixtures/updateItemErrorResponse.xml'
+NEGOTIATE_CUSTOM_HOSTNAME            = slurpFile '../fixtures/negotiate-custom-hostname.b64'
 
 describe 'Exchange', ->
   beforeEach ->
@@ -141,7 +142,6 @@ describe 'Exchange', ->
           expect(@error).to.exist
           expect(@error.code).to.deep.equal 422, @error.message
           expect(@error.message).to.deep.equal 'EndDate is earlier than StartDate'
-
 
     describe 'whoami', ->
       describe 'when the credentials are valid', ->
@@ -323,6 +323,22 @@ describe 'Exchange', ->
           expect(@error).to.exist
           expect(@error.code).to.equal 422
           expect(@error.message).to.equal 'Unprocessable Entity: The change key is invalid.'
+
+    describe 'getItem', ->
+      beforeEach (done) ->
+        @server
+          .get '/EWS/Exchange.asmx'
+          .set 'Authorization', NEGOTIATE
+          .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+        @server
+          .post '/EWS/Exchange.asmx'
+          .reply 200, GET_CALENDAR_ITEM_ALTERNATE_RESPONSE
+
+        @sut.getItemByItemId 'item-id', (error, @item) => done error
+
+      it 'should parse the item', ->
+        expect(@item.urls.clothing.has.aaron).to.contain {url: 'https://aaron.has.clothing/meet/123456'}
 
     describe 'updateItem', ->
       describe 'when creating an item is successful', ->
