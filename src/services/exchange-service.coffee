@@ -346,7 +346,6 @@ class Exchange
     body = _.get meetingRequest, 'Body._', ''
     location = _.get meetingRequest, 'Location', ''
     locationUrls = location.match urlregexp
-    console.log 'meetingRequest', meetingRequest
     joinMeetingUrls = [ _.get(meetingRequest, 'JoinOnlineMeetingUrl') ]
     entityExtraction = _.castArray _.get(meetingRequest, 'EntityExtractionResult.Urls.UrlEntity')
     entityUrls = _.map entityExtraction, 'Url'
