@@ -95,6 +95,40 @@ describe 'Exchange', ->
         it 'should yield no authenticated', ->
           expect(@authenticated).not.to.exist
 
+      describe 'when there is a user error', ->
+        beforeEach (done) ->
+          @server
+            .get '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @server
+            .post '/EWS/Exchange.asmx'
+            .reply 429
+
+          @sut.authenticate (@error, @authenticated) => done()
+
+        it 'should yield an error', ->
+          expect(@error).to.exist
+
+        it 'should yield no authenticated', ->
+          expect(@authenticated).not.to.exist
+
+      describe 'when there is an error during authorization', ->
+        beforeEach (done) ->
+          @server
+            .get '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 500, '', {'WWW-Authenticate': CHALLENGE}
+
+          @sut.authenticate (@error, @authenticated) => done()
+
+        it 'should yield an error', ->
+          expect(@error).to.exist
+
+        it 'should yield no authenticated', ->
+          expect(@authenticated).not.to.exist
+
     describe '->getCalendarItemsInRange', ->
       context 'when the credentials are valid', ->
         beforeEach (done) ->

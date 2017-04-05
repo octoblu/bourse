@@ -43,9 +43,9 @@ class Exchange
     @authenticatedRequest.doEws body: getInboxRequest(), (error, response, extra) =>
       return callback error if error?
       {statusCode} = extra
-      return callback @_errorWithCode(statusCode, "5xx Error received: #{statusCode}") if statusCode >= 500
-
-      callback null, (statusCode == 200), {statusCode}
+      return callback null, true if statusCode == 200
+      return callback null, false if statusCode == 401
+      return callback @_errorWithCode(statusCode, "Error received: #{statusCode}")
 
   _prepareExtendedProperties: (extendedProperties) =>
     _.mapKeys extendedProperties, (value, key) =>
