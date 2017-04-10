@@ -12,7 +12,9 @@ XML_OPTIONS = {
   explicitArray: false
 }
 
-CONNECTION_STATUS_PATH = 'Envelope.Body.GetStreamingEventsResponse.ResponseMessages.GetStreamingEventsResponseMessage.ConnectionStatus'
+RESPONSE_MESSAGE_PATH = 'Envelope.Body.GetStreamingEventsResponse.ResponseMessages.GetStreamingEventsResponseMessage'
+CONNECTION_STATUS_PATH = "#{RESPONSE_MESSAGE_PATH}.ConnectionStatus"
+NOTIFICATIONS_PATH = "#{RESPONSE_MESSAGE_PATH}.Notifications"
 
 class ExchangeStream extends stream.Readable
   constructor: ({connectionOptions, @request}) ->
@@ -44,7 +46,7 @@ class ExchangeStream extends stream.Readable
   _onData: (data) =>
     debug '_onData', JSON.stringify(data,null,2)
     return @destroy() if 'Closed' == _.get data, CONNECTION_STATUS_PATH
-    return if _.isEmpty _.get(data, 'Envelope.Body.GetStreamingEventsResponse.ResponseMessages')
+    return if _.isEmpty _.get(data, NOTIFICATIONS_PATH)
     @push {timestamp: moment.utc().format()}
 
   _onError: (error) =>
