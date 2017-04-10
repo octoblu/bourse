@@ -42,7 +42,7 @@ class ExchangeStream extends stream.Readable
     @push null
 
   _onData: (data) =>
-    debug '_onData'
+    debug '_onData', JSON.stringify(data,null,2)
     return @destroy() if 'Closed' == _.get data, CONNECTION_STATUS_PATH
     return if _.isEmpty _.get(data, 'Envelope.Body.GetStreamingEventsResponse.ResponseMessages')
     @push {timestamp: moment.utc().format()}
