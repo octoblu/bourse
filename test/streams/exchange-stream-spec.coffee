@@ -94,12 +94,3 @@ describe 'ExchangeStream', ->
 
     it 'should close the stream', ->
       # Getting here is good enough
-
-  describe 'when the request times out', ->
-    beforeEach (done) ->
-      @clock.tick 300
-      @sut.on 'end', done
-      @sut.on 'readable', => @sut.read() # end will not emit until stream is fully read
-
-    it 'should close the stream', ->
-      # Getting here is not good enough

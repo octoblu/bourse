@@ -32,5 +32,4 @@ describe 'AuthenticatedRequest', ->
         @sut.getOpenEwsRequest {}, (@error) => done()
 
       it 'should yield an error', ->
-        expect(=> throw @error).to.throw 'ETIMEDOUT'
-        expect(@error.message).to.deep.equal 'ETIMEDOUT'
+        expect(@error.message).to.contain 'TIMEDOUT'
