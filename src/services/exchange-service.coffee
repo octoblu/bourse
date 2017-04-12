@@ -24,6 +24,7 @@ getSubscriptionRequest                 = require '../templates/getSubscriptionRe
 getUserCalendarConfigurationRequest    = require '../templates/getUserCalendarConfigurationRequest'
 getUserSettingsRequest                 = require '../templates/getUserSettingsRequest'
 updateItemRequest                      = require '../templates/updateItemRequest'
+forwardItemRequest                     = require '../templates/forwardItemRequest'
 updateUserCalendarConfigurationRequest = require '../templates/updateUserCalendarConfigurationRequest'
 
 SUBSCRIPTION_ID_PATH = 'Envelope.Body.SubscribeResponse.ResponseMessages.SubscribeResponseMessage.SubscriptionId'
@@ -146,6 +147,16 @@ class Exchange
       return callback @_parseUpdateItemErrorResponse response if @_isUpdateItemError response
       return callback null, @_parseUpdateItemResponse response
 
+  forwardItem: (options, callback) =>
+    # they must exist
+    debug 'forwardItem-options', options
+    debug 'forwardItem', forwardItemRequest(options)
+    @authenticatedRequest.doEws body: forwardItemRequest(options), (error, response, extra) =>
+      return callback error if error?
+      return callback new Error("Non 200 status code: #{extra.statusCode}") if extra.statusCode != 200
+      return callback @_parseForwardItemErrorResponse response if @_isForwardItemError response
+      return callback null, @_parseForwardItemResponse response
+
   updateUserCalendarConfiguration: ({piAutoProcess}, callback) =>
     @authenticatedRequest.doEws body: updateUserCalendarConfigurationRequest({piAutoProcess}), (error, response) =>
       return callback error if error?
@@ -204,6 +215,10 @@ class Exchange
 
   _isUpdateItemError: (response) =>
     responseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'
+    return 'Error' == _.get responseMessage, '$.ResponseClass'
+
+  _isForwardItemError: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
     return 'Error' == _.get responseMessage, '$.ResponseClass'
 
   _normalizeDatetime: (datetime) =>
@@ -324,6 +339,14 @@ class Exchange
 
     _.map meetingRequests, @_parseMeetingRequest
 
+  _parseForwardItemErrorResponse: (response) =>
+    responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    message = _.get responseMessage, 'MessageText'
+
+    error = new Error "Unprocessable Entity: #{message}"
+    error.code = 422
+    return error
+
   _parseUpdateItemErrorResponse: (response) =>
     responseMessage = _.get response, 'Envelope.Body.UpdateItemResponse.ResponseMessages.UpdateItemResponseMessage'
     message = _.get responseMessage, 'MessageText'
@@ -340,6 +363,14 @@ class Exchange
       changeKey:    _.get Item, 'ItemId.$.ChangeKey'
       UID:          _.get Item, 'UID'
       recurrenceId: _.get Item, 'RecurrenceId'
+    }
+
+  _parseForwardItemResponse: (response) =>
+    ResponseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
+    ResponseCode = _.get ResponseMessage, 'ResponseCode'
+    return {} if ResponseCode == 'NoError'
+    {
+      error: 'Unknown error'
     }
 
   _parseUrls: (meetingRequest) =>

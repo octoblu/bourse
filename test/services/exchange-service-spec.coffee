@@ -20,6 +20,8 @@ DELETE_ITEM_ERROR_RESPONSE           = slurpFile '../fixtures/deleteItemErrorRes
 GET_CALENDAR_RANGE_ERROR_RESPONSE    = slurpFile '../fixtures/getCalendarItemsInRangeErrorResponse.xml'
 GET_CALENDAR_RANGE_RESPONSE          = slurpFile '../fixtures/getCalendarItemsInRangeResponse.xml'
 GET_CALENDAR_ITEM_ALTERNATE_RESPONSE = slurpFile '../fixtures/getItemCalendarAlternateResponse.xml'
+FORWARD_ITEM_RESPONSE                = slurpFile '../fixtures/forwardItemResponse.xml'
+FORWARD_ITEM_ERROR_RESPONSE          = slurpFile '../fixtures/forwardItemErrorResponse.xml'
 USER_SETTINGS_RESPONSE               = slurpFile '../fixtures/userSettingsResponse.xml'
 UPDATE_ITEM_RESPONSE                 = slurpFile '../fixtures/updateItemResponse.xml'
 UPDATE_ITEM_ERROR_RESPONSE           = slurpFile '../fixtures/updateItemErrorResponse.xml'
@@ -463,3 +465,61 @@ describe 'Exchange', ->
 
       it 'should make a negotiate request to the exchange server with the given authHostname', ->
         expect(@negotiate.isDone).to.be.true
+
+    describe 'forwardItem', ->
+      describe 'when creating an item is successful', ->
+        beforeEach (done) ->
+          options =
+            email: 'newguy@whatevs.co'
+            itemId: 'some-item-id'
+            changeKey: 'some-change-key'
+
+          @negotiate = @server
+            .get '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @forwardItem = @server
+            .post '/EWS/Exchange.asmx'
+            .reply 200, FORWARD_ITEM_RESPONSE
+
+          @sut.forwardItem options, (error, @response) => done error
+
+        it 'should make a negotiate request to the exchange server', ->
+          expect(@negotiate.isDone).to.be.true
+
+        it 'should make a forwardItem request to the exchange server', ->
+          expect(@forwardItem.isDone).to.be.true
+
+        it 'should return an empty object', ->
+          expect(@response).to.deep.equal {}
+
+      describe 'when creating an item fails', ->
+        beforeEach (done) ->
+          options =
+            itemId: 'AnId'
+            changeKey: 'wrong-wrong'
+            subject: 'Feed the Trolls'
+            attendees: ['no@sleep.net', 'til@brooklyn.net']
+            start: '2016-09-10T00:29:00Z'
+            end: '2016-09-10T01:00:00Z'
+            location: 'Mexico?'
+
+          @negotiate = @server
+            .get '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': CHALLENGE}
+
+          @updateItem = @server
+            .post '/EWS/Exchange.asmx'
+            .reply 200, FORWARD_ITEM_ERROR_RESPONSE
+
+          @sut.updateItem options, (@error, @item) => done()
+
+        it 'should make a negotiate request to the exchange server', ->
+          expect(@negotiate.isDone).to.be.true
+
+        it 'should return a 422 error', ->
+          expect(@error).to.exist
+          expect(@error.code).to.equal 422
+          expect(@error.message).to.equal 'Unprocessable Entity: The change key is invalid.'
