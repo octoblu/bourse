@@ -499,11 +499,7 @@ describe 'Exchange', ->
           options =
             itemId: 'AnId'
             changeKey: 'wrong-wrong'
-            subject: 'Feed the Trolls'
-            attendees: ['no@sleep.net', 'til@brooklyn.net']
-            start: '2016-09-10T00:29:00Z'
-            end: '2016-09-10T01:00:00Z'
-            location: 'Mexico?'
+            email: 'i@broke.it'
 
           @negotiate = @server
             .get '/EWS/Exchange.asmx'
@@ -514,7 +510,7 @@ describe 'Exchange', ->
             .post '/EWS/Exchange.asmx'
             .reply 200, FORWARD_ITEM_ERROR_RESPONSE
 
-          @sut.updateItem options, (@error, @item) => done()
+          @sut.forwardItem options, (@error, @item) => done()
 
         it 'should make a negotiate request to the exchange server', ->
           expect(@negotiate.isDone).to.be.true
