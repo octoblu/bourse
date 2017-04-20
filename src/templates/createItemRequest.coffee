@@ -30,17 +30,19 @@ module.exports = _.template """
             <t:Start><%= start %></t:Start>
             <t:End><%= end %></t:End>
             <t:Location><%= location %></t:Location>
-            <t:RequiredAttendees>
-              <% _.each(attendees, function(attendee) { %>
-                <t:Attendee>
-                  <t:Mailbox>
-                    <t:EmailAddress><%= attendee %></t:EmailAddress>
-                    <t:RoutingType>SMTP</t:RoutingType>
-                    <t:MailboxType>Mailbox</t:MailboxType>
-                  </t:Mailbox>
-                </t:Attendee>
-              <% }) %>
-            </t:RequiredAttendees>
+            <% if (!_.isEmpty(attendees)) { %>
+              <t:RequiredAttendees>
+                <% _.each(attendees, function(attendee) { %>
+                  <t:Attendee>
+                    <t:Mailbox>
+                      <t:EmailAddress><%= attendee %></t:EmailAddress>
+                      <t:RoutingType>SMTP</t:RoutingType>
+                      <t:MailboxType>Mailbox</t:MailboxType>
+                    </t:Mailbox>
+                  </t:Attendee>
+                <% }) %>
+              </t:RequiredAttendees>
+            <% } %>
           </t:CalendarItem>
         </m:Items>
       </m:CreateItem>
