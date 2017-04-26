@@ -224,15 +224,17 @@ class Exchange
   _normalizeDatetime: (datetime) =>
     moment(datetime).utc().format()
 
-  _parseAttendee: (requiredAttendee) =>
+  _parseAttendee: (attendee) =>
     {
-      name: _.get requiredAttendee, 'Mailbox.Name'
-      email: _.get requiredAttendee, 'Mailbox.EmailAddress'
+      name: _.get attendee, 'Mailbox.Name'
+      email: _.get attendee, 'Mailbox.EmailAddress'
     }
 
   _parseAttendees: (meetingRequest) =>
     requiredAttendees = _.castArray _.get(meetingRequest, 'RequiredAttendees.Attendee')
-    _.map requiredAttendees, @_parseAttendee
+    optionalAttendees = _.castArray _.get(meetingRequest, 'OptionalAttendees.Attendee')
+    attendees = _.union requiredAttendees, optionalAttendees
+    _.map attendees, @_parseAttendee
 
   _parseCreateItemErrorResponse: (response) =>
     responseMessage = _.get response, 'Envelope.Body.CreateItemResponse.ResponseMessages.CreateItemResponseMessage'
