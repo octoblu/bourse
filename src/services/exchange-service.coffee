@@ -37,6 +37,7 @@ class Exchange
 
     protocol ?= 'https'
     port ?= 443
+    timeout ?= 120 * 1000
     @connectionOptions = {protocol, hostname, port, @username, @password, authHostname, timeout}
     @authenticatedRequest = new AuthenticatedRequest @connectionOptions
 
