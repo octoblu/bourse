@@ -7,6 +7,7 @@ path = require 'path'
 shmock = require 'shmock'
 enableDestroy = require 'server-destroy'
 
+base64 = require '../helpers/base64'
 Exchange = require '../../src/services/exchange-service'
 
 slurpFile = (filename) => _.trim fs.readFileSync path.join(__dirname, filename), encoding: 'utf8'
@@ -46,6 +47,23 @@ describe 'Exchange', ->
         password: 'bar'
 
     describe 'authenticate', ->
+      describe 'when the server uses Basic Auth', ->
+        beforeEach (done) ->
+          @server
+            .get '/EWS/Exchange.asmx'
+            .set 'Authorization', NEGOTIATE
+            .reply 401, '', {'WWW-Authenticate': 'Basic Realm=""'}
+
+          @server
+            .post '/EWS/Exchange.asmx'
+            .set 'Authorization', "Basic #{base64 'foo@biz.biz:bar'}"
+            .reply 200
+
+          @sut.authenticate (error, @authenticated) => done error
+
+        it 'should yield true', ->
+          expect(@authenticated).to.be.true
+
       describe 'when the credentials are valid', ->
         beforeEach (done) ->
           @server

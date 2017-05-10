@@ -48,19 +48,12 @@ class AuthenticatedRequest
       return callback null, authenticatedRequest.post({body})
 
   _getRequest: ({pathname}, callback) =>
-    urlStr = url.format { @protocol, @hostname, @port, pathname }
-    username = _.first _.split @username, '@'
-    ntlmOptions =
-      url: urlStr
-      username: username
-      password: @password
-      workstation: ''
-      domain: ''
+    throw new Error 'callback must be a function' unless _.isFunction callback
 
-    if @protocol == 'https'
-      keepaliveAgent = new https.Agent({keepAlive: true});
-    else
-      keepaliveAgent = new http.Agent({keepAlive: true});
+    urlStr = url.format { @protocol, @hostname, @port, pathname }
+
+    keepaliveAgent = new https.Agent keepAlive: true
+    keepaliveAgent = new http.Agent keepAlive: true if @protocol == 'http'
 
     options =
       url: urlStr
@@ -68,24 +61,53 @@ class AuthenticatedRequest
       timeout: @timeout
       headers:
         'Content-Type': 'text/xml; charset=utf-8'
-        'Authorization': ntlm.createType1Message(ntlmOptions)
+        'Authorization': ntlm.createType1Message @_ntlmOptions(urlStr)
 
     request.get options, (error, response) =>
       return callback error if error?
       unless response.statusCode == 401
         return callback new Error("Expected status: 401, received #{response.statusCode}")
 
-      type2msg = ntlm.parseType2Message response.headers['www-authenticate']
-      type3msg = ntlm.createType3Message type2msg, ntlmOptions
+      authenticateHeader   = response.headers['www-authenticate']
+      authenticationMethod = @_parseAuthenticationMethod authenticateHeader
 
-      options =
-        url: urlStr
-        agent: keepaliveAgent
-        headers:
-          'Authorization': type3msg
-          'Content-Type': 'text/xml; charset=utf-8'
+      return @_buildNtlmRequest {keepaliveAgent, authenticateHeader, urlStr}, callback if authenticationMethod == 'ntlm'
+      return @_buildBasicRequest {urlStr}, callback if authenticationMethod == 'basic'
+      return callback new Error "Unsupported authenticationMethod: #{authenticationMethod}"
 
-      callback null, request.defaults(options)
+  _buildBasicRequest: ({urlStr}, callback) =>
+    options =
+      url: urlStr
+      auth: { @username, @password }
+      headers:
+        'Content-Type': 'text/xml; charset=utf-8'
+        
+    callback null, request.defaults(options)
+
+  _buildNtlmRequest: ({keepaliveAgent, authenticateHeader, urlStr}, callback) =>
+    type2msg = ntlm.parseType2Message authenticateHeader
+    type3msg = ntlm.createType3Message type2msg, @_ntlmOptions(urlStr)
+
+    options =
+      url: urlStr
+      agent: keepaliveAgent
+      headers:
+        'Authorization': type3msg
+        'Content-Type': 'text/xml; charset=utf-8'
+
+    callback null, request.defaults(options)
+
+  _ntlmOptions: (urlStr) =>
+    return {
+      url: urlStr
+      username: _.first _.split(@username, '@')
+      password: @password
+      workstation: ''
+      domain: ''
+    }
+
+  _parseAuthenticationMethod: (authenticateHeader) =>
+    _.toLower _.first _.split(authenticateHeader, ' ')
 
   _xml2js: (xml, callback) =>
     options = {
