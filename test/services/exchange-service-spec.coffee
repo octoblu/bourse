@@ -392,7 +392,7 @@ describe 'Exchange', ->
         @sut.getItemByItemId 'item-id', (error, @item) => done error
 
       it 'should parse the item', ->
-        expect(@item.urls.clothing.has.aaron).to.contain {url: 'https://aaron.has.clothing/meet/123456'}
+        expect(@item.urls).to.include {url: 'https://aaron.has.clothing/meet/123456', hostname: 'aaron.has.clothing'}
 
     describe 'updateItem', ->
       describe 'when creating an item is successful', ->

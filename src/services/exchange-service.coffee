@@ -313,6 +313,7 @@ class Exchange
         email: _.get meetingRequest, 'Organizer.Mailbox.EmailAddress'
       attendees: @_parseAttendees(meetingRequest)
       urls: @_parseUrls(meetingRequest)
+      joinOnlineMeetingUrl: _.get(meetingRequest, 'JoinOnlineMeetingUrl')
       extendedProperties: @_parseExtendedProperties(meetingRequest)
     }
 
@@ -390,18 +391,12 @@ class Exchange
 
     matches = _.compact _.union(bodyUrls, locationUrls, entityUrls, joinMeetingUrls)
 
-    groupedUrls = {}
-
-    _.each matches, (match) =>
+    _.map matches, (match) =>
       parsed = url.parse match
-      path = @_reverseHostname parsed.hostname
-
-      urls = _.get(groupedUrls, path, [])
-      return unless _.isArray(urls)
-      urls.push {url: match}
-      _.set groupedUrls, path, urls
-
-    return groupedUrls
+      return {
+        url: match
+        hostname: parsed.hostname
+      }
 
   _parseUserCalendarConfigurationResponse: (response, callback) =>
     ResponseMessage = _.get response, 'Envelope.Body.GetUserConfigurationResponse.ResponseMessages.GetUserConfigurationResponseMessage'
