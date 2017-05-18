@@ -50,7 +50,7 @@ class ExchangeStream extends stream.Readable
     @push {timestamp: moment.utc().format()}
 
   _onError: (error) =>
-    console.error error.stack
+    console.error "bourse:exchange-stream error", error.stack
     @destroy()
 
   _read: =>
