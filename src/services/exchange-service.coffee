@@ -140,6 +140,7 @@ class Exchange
     options.start ?= null
     options.location ?= null
     options.attendees ?= null
+    options.sendMeetingInvitationsOrCancellations ?= 'SendToAllAndSaveCopy'
     debug 'updateItem-options', options
     debug 'updateItem', updateItemRequest(options)
     @authenticatedRequest.doEws body: updateItemRequest(options), (error, response, extra) =>

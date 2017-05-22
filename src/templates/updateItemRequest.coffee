@@ -10,7 +10,7 @@ module.exports = _.template """
       <t:RequestServerVersion Version="Exchange2013" />
    </soap:Header>
    <soap:Body>
-      <m:UpdateItem ConflictResolution="AlwaysOverwrite" SendMeetingInvitationsOrCancellations="SendToAllAndSaveCopy">
+      <m:UpdateItem ConflictResolution="AlwaysOverwrite" SendMeetingInvitationsOrCancellations="<%= sendMeetingInvitationsOrCancellations %>">
          <m:ItemChanges>
             <t:ItemChange>
                <t:ItemId Id="<%= itemId %>" ChangeKey="<%= changeKey %>" />
