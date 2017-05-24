@@ -30,7 +30,7 @@ class ExchangeStream extends stream.Readable
       .pipe(xmlObjects(XML_OPTIONS))
       .on 'data', @_onData
 
-    @request.once 'error', @_onError
+    @request.on 'error', @_onError
 
     @request
       .pipe(xmlNodes('Envelope'))
@@ -38,6 +38,7 @@ class ExchangeStream extends stream.Readable
 
   destroy: =>
     debug 'destroy'
+    return if @_isClosed
     @request.abort?()
     @request.socket?.destroy?()
     @_isClosed = true
