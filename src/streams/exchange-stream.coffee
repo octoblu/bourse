@@ -39,9 +39,9 @@ class ExchangeStream extends stream.Readable
   destroy: =>
     debug 'destroy'
     return if @_isClosed
+    @_isClosed = true
     @request.abort?()
     @request.socket?.destroy?()
-    @_isClosed = true
     @push null
 
   _onData: (data) =>
